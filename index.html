@@ -11,6 +11,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Babypass">
 <link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init("IeHTlhUhlZ5310n1l");</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👶</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563eb'/><text y='.85em' font-size='75' x='12'>👶</text></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👶</text></svg>">
@@ -409,6 +411,12 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
         <div class="today-header" id="todayHeader">Heute</div>
         <div id="todayList"><div class="loading">⏳</div></div>
       </div>
+      <!-- FUTURE ENTRIES -->
+      <div id="futureSection" style="display:none;margin-bottom:16px">
+        <div class="today-header" style="color:#ea580c">Künftige Einträge</div>
+        <div id="futureEntries"></div>
+      </div>
+
       <button class="past-toggle-btn" id="pastToggleBtn" onclick="togglePast()">▼ <span id="pastToggleLabel">Frühere Einträge anzeigen</span></button>
       <div id="pastEntries"></div>
     </div>
@@ -503,128 +511,32 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
     </div>
     <input type="hidden" id="editBabyId">
     <div class="modal-section">
-      <div class="modal-label">Name des Babys</div>
-      <input type="text" class="modal-input" id="editBabyName" placeholder="z.B. Lena, Noah...">
-    </div>
-    <div class="modal-section">
-      <div class="modal-label">Icon</div>
-      <div id="editBabyIconGrid" style="display:flex;gap:10px;flex-wrap:wrap"></div>
-    </div>
-    <button class="modal-save-btn" onclick="saveEditBaby()">Änderungen speichern</button>
-  </div>
-</div>
-
-<!-- ADD BABY MODAL -->
-<div class="modal-overlay" id="addBabyModal" onclick="closeAddBabyOutside(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Baby hinzufügen</div>
-      <button class="modal-close" onclick="closeAddBaby()">✕</button>
-    </div>
-    <div class="modal-section">
-      <div class="modal-label">Name des Babys</div>
-      <input type="text" class="modal-input" id="newBabyName" placeholder="z.B. Lena, Noah...">
-    </div>
-    <div class="modal-section">
-      <div class="modal-label">Icon</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <span class="baby-icon-btn" data-icon="👶" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">👶</span>
-        <span class="baby-icon-btn" data-icon="🌸" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🌸</span>
-        <span class="baby-icon-btn" data-icon="⭐" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">⭐</span>
-        <span class="baby-icon-btn" data-icon="🌙" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🌙</span>
-        <span class="baby-icon-btn" data-icon="🦋" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🦋</span>
-        <span class="baby-icon-btn" data-icon="🌈" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🌈</span>
-      </div>
-    </div>
-    <button class="modal-save-btn" onclick="saveBaby()">Baby speichern</button>
-  </div>
-</div>
-
-
-
-
-
-<!-- SETTINGS MODAL -->
-<div class="modal-overlay" id="settingsModal" onclick="closeSettingsOutside(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">⚙️ Einstellungen</div>
-      <button class="modal-close" onclick="closeSettings()">✕</button>
-    </div>
-
-    <!-- PARTNER -->
-    <div style="margin-bottom:20px">
-      <div class="card-label" style="margin-bottom:12px">Partner einladen</div>
-      <div id="partnerList" style="margin-bottom:10px"></div>
-      <div style="display:flex;gap:8px">
-        <input type="email" class="modal-input" id="partnerEmail" placeholder="partner@email.ch" style="margin-bottom:0;flex:1">
-        <button onclick="invitePartner()" style="padding:11px 16px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-family:var(--font);font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap">Einladen</button>
-      </div>
-      <div style="font-size:.72rem;color:var(--text2);margin-top:8px;line-height:1.5">Der Partner muss sich zuerst mit dieser E-Mail bei Babypass registrieren.</div>
-    </div>
-
-    <!-- PASSWORT -->
-    <div style="margin-bottom:20px">
-      <div class="card-label" style="margin-bottom:12px">Passwort ändern</div>
-      <input type="password" class="modal-input" id="settingsNewPw" autocomplete="new-password" data-lpignore="true" placeholder="Neues Passwort (min. 6 Zeichen)">
-      <input type="password" class="modal-input" id="settingsNewPw2" autocomplete="new-password" data-lpignore="true" placeholder="Passwort bestätigen">
-      <button class="modal-save-btn" onclick="changePassword()" style="margin-top:0">Passwort speichern</button>
-    </div>
-
-    <!-- CHECKPUNKTE -->
-    <div>
-      <div class="card-label" style="margin-bottom:12px">Checkpunkte anpassen</div>
-      <div id="checkpointSettings"></div>
-      <button onclick="addCheckpoint()" style="width:100%;padding:11px;border:1.5px dashed var(--border);border-radius:10px;background:transparent;font-family:var(--font);font-size:.85rem;color:var(--accent);cursor:pointer;font-weight:600;margin-bottom:12px">+ Checkpunkt hinzufügen</button>
-      <button class="modal-save-btn" onclick="saveCheckpoints()">Checkpunkte speichern</button>
-    </div>
-  </div>
-</div>
-
-<!-- EMOJI PICKER MODAL -->
-<div class="modal-overlay" id="emojiModal" onclick="closeEmojiOutside(event)">
-  <div class="modal" style="padding-bottom:20px">
-    <div class="modal-header">
-      <div class="modal-title">Icon wählen</div>
-      <button class="modal-close" onclick="closeEmoji()">✕</button>
-    </div>
-    <div id="emojiGrid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;max-height:300px;overflow-y:auto"></div>
-  </div>
-</div>
-
-
-<!-- LEGAL MODAL -->
-<div class="modal-overlay" id="legalModal" onclick="closeLegalOutside(event)">
-  <div class="modal" style="max-height:85vh">
-    <div class="modal-header">
-      <div class="modal-title" id="legalTitle">Impressum</div>
-      <button class="modal-close" onclick="closeLegal()">✕</button>
-    </div>
-    <div id="legalContent" style="font-size:.83rem;line-height:1.8;color:var(--text)"></div>
-  </div>
-</div>
-
-<!-- EDIT BABY MODAL -->
-<div class="modal-overlay" id="editBabyModal" onclick="closeEditBabyOutside(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Baby bearbeiten</div>
-      <button class="modal-close" onclick="closeEditBaby()">✕</button>
-    </div>
-    <input type="hidden" id="editBabyId">
-    <div class="modal-section">
       <div class="modal-label">Name</div>
       <input type="text" class="modal-input" id="editBabyName" placeholder="Name des Babys">
     </div>
     <div class="modal-section">
       <div class="modal-label">Icon</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap" id="editBabyIcons">
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="editBabyIcons">
         <span class="baby-icon-btn" data-icon="👶" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">👶</span>
         <span class="baby-icon-btn" data-icon="🌸" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🌸</span>
         <span class="baby-icon-btn" data-icon="⭐" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">⭐</span>
         <span class="baby-icon-btn" data-icon="🌙" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🌙</span>
         <span class="baby-icon-btn" data-icon="🦋" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🦋</span>
         <span class="baby-icon-btn" data-icon="🌈" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🌈</span>
+        <span class="baby-icon-btn" data-icon="🐣" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🐣</span>
+        <span class="baby-icon-btn" data-icon="🧸" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🧸</span>
+        <span class="baby-icon-btn" data-icon="🌺" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🌺</span>
+        <span class="baby-icon-btn" data-icon="🍀" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🍀</span>
+        <span class="baby-icon-btn" data-icon="🎀" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🎀</span>
+        <span class="baby-icon-btn" data-icon="🌻" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🌻</span>
+        <span class="baby-icon-btn" data-icon="💛" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">💛</span>
+        <span class="baby-icon-btn" data-icon="💙" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">💙</span>
+        <span class="baby-icon-btn" data-icon="💜" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">💜</span>
+        <span class="baby-icon-btn" data-icon="🌟" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🌟</span>
+        <span class="baby-icon-btn" data-icon="🦄" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🦄</span>
+        <span class="baby-icon-btn" data-icon="🐧" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🐧</span>
+        <span class="baby-icon-btn" data-icon="🐥" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🐥</span>
+        <span class="baby-icon-btn" data-icon="🐻" onclick="selectEditBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid var(--border);background:var(--bg)">🐻</span>
       </div>
     </div>
     <button class="modal-save-btn" onclick="saveEditBaby()">Änderungen speichern</button>
@@ -860,6 +772,7 @@ window.openBabyApp = () => {
   if(!baby) return;
   document.getElementById('appBabyName').textContent = baby.icon+' '+baby.name;
   if(unsub){unsub();unsub=null;}
+  allEntries=[];
   showScreen('appScreen');
   initDateTime();
   updateTempDisplay();
@@ -867,15 +780,16 @@ window.openBabyApp = () => {
   initDrum('drumWrap','drumList');
   buildDrum('editDrumList', editMlVal);
   initDrum('editDrumWrap','editDrumList');
-  subscribeHistory();
+  // Small delay to ensure Firestore connection is ready
+  setTimeout(()=>subscribeHistory(), 300);
 };
 
 window.openAddBaby = () => {
   document.getElementById('newBabyName').value='';
   selectedBabyIcon='👶';
-  document.querySelectorAll('.baby-icon-btn').forEach(b=>{
-    b.style.borderColor=b.dataset.icon==='👶'?'var(--accent)':'var(--border)';
-    b.style.background=b.dataset.icon==='👶'?'var(--accent-light)':'var(--bg)';
+  document.querySelectorAll('#addBabyIconsWrap .baby-icon-btn').forEach(b=>{
+    b.style.borderColor=b.dataset.icon==='👶'?'#2563eb':'#e2e8f0';
+    b.style.background=b.dataset.icon==='👶'?'#dbeafe':'#f0f4f8';
   });
   document.getElementById('addBabyModal').classList.add('open');
 };
@@ -1182,10 +1096,22 @@ window.saveEdit = async () => {
 // ── REALTIME ───────────────────────────────────────────────────────────────
 function subscribeHistory(){
   if(unsub){unsub();unsub=null;}
-  unsub=onSnapshot(query(rapportCol(),orderBy('createdAt','desc')),snap=>{
-    allEntries=snap.docs.map(d=>({id:d.id,...d.data()}));
-    updateHeaderStats(allEntries); renderHistory(allEntries); setSyncStatus('ok');
-  },err=>{console.error(err);setSyncStatus('error');});
+  if(!currentUser||!currentBabyId){return;}
+  setSyncStatus('syncing');
+  try {
+    unsub=onSnapshot(query(rapportCol(),orderBy('createdAt','desc')),snap=>{
+      allEntries=snap.docs.map(d=>({id:d.id,...d.data()}));
+      updateHeaderStats(allEntries); renderHistory(allEntries); setSyncStatus('ok');
+    },err=>{
+      console.error(err);
+      setSyncStatus('error');
+      // Retry after 2 seconds
+      setTimeout(()=>subscribeHistory(), 2000);
+    });
+  } catch(e) {
+    console.error(e); setSyncStatus('error');
+    setTimeout(()=>subscribeHistory(), 2000);
+  }
 }
 
 // ── HEADER STATS ───────────────────────────────────────────────────────────
@@ -1211,8 +1137,23 @@ function updateHeaderStats(entries){
 function renderHistory(entries){
   const today=new Date().toISOString().split('T')[0];
   const te=entries.filter(e=>e.date===today).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-  const pe=entries.filter(e=>e.date!==today).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const pe=entries.filter(e=>e.date<today).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const fe=entries.filter(e=>e.date>today).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+
+  // Today
   document.getElementById('todayList').innerHTML=te.length?te.map(e=>renderEntry(e,true)).join(''):`<div class="history-empty">${T[lang].historyEmpty}</div>`;
+
+  // Future entries
+  const futureSection=document.getElementById('futureSection');
+  const futureEntries=document.getElementById('futureEntries');
+  if(fe.length){
+    futureSection.style.display='block';
+    futureEntries.innerHTML=fe.map(e=>renderEntry(e,false)).join('');
+  } else {
+    futureSection.style.display='none';
+  }
+
+  // Past entries
   document.getElementById('pastEntries').innerHTML=pe.length?pe.map(e=>renderEntry(e,false)).join(''):`<div class="history-empty">${T[lang].pastEmpty}</div>`;
   document.getElementById('pastToggleLabel').textContent=pastVisible?T[lang].pastHide:T[lang].pastShow;
 }
@@ -1469,44 +1410,8 @@ window.pickEmoji = emoji => {
 // ── EDIT BABY ──────────────────────────────────────────────────────────────
 const BABY_ICONS = ['👶','🌸','⭐','🌙','🦋','🌈','🧸','🐣','🌺','🎀','🌻','🍀'];
 
-window.openEditBaby = id => {
-  const baby = babies.find(b=>b.id===id);
-  if(!baby) return;
-  document.getElementById('editBabyId').value = id;
-  document.getElementById('editBabyName').value = baby.name;
-  selectedBabyIcon = baby.icon||'👶';
-  const grid = document.getElementById('editBabyIconGrid');
-  grid.innerHTML = BABY_ICONS.map(icon=>`
-    <span onclick="selectEditBabyIcon(this,'${icon}')"
-      style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid ${icon===selectedBabyIcon?'var(--accent)':'var(--border)'};background:${icon===selectedBabyIcon?'var(--accent-light)':'var(--bg)'}">
-      ${icon}
-    </span>`).join('');
-  document.getElementById('editBabyModal').classList.add('open');
-};
-window.closeEditBaby = () => document.getElementById('editBabyModal').classList.remove('open');
-window.closeEditBabyOutside = ev => { if(ev.target===document.getElementById('editBabyModal')) closeEditBaby(); };
 
-window.selectEditBabyIcon = (el, icon) => {
-  selectedBabyIcon = icon;
-  document.querySelectorAll('#editBabyIconGrid span').forEach(s=>{
-    s.style.borderColor = s.textContent.trim()===icon?'var(--accent)':'var(--border)';
-    s.style.background = s.textContent.trim()===icon?'var(--accent-light)':'var(--bg)';
-  });
-};
 
-window.saveEditBaby = async () => {
-  const id = document.getElementById('editBabyId').value;
-  const name = document.getElementById('editBabyName').value.trim();
-  if(!name){showToast('Bitte einen Namen eingeben',true);return;}
-  try {
-    await updateDoc(doc(db,`users/${currentUser.uid}/babies/${id}`),{name, icon:selectedBabyIcon});
-    const baby = babies.find(b=>b.id===id);
-    if(baby){baby.name=name; baby.icon=selectedBabyIcon;}
-    renderBabyGrid();
-    closeEditBaby();
-    showToast('✓ Baby aktualisiert');
-  } catch(e){showToast('⚠ Fehler',true);console.error(e);}
-};
 
 
 
@@ -1521,8 +1426,8 @@ window.openEditBaby = id => {
   editBabySelectedIcon = baby.icon||'👶';
   document.querySelectorAll('#editBabyIcons .baby-icon-btn').forEach(b=>{
     const sel = b.dataset.icon===editBabySelectedIcon;
-    b.style.borderColor = sel?'var(--accent)':'var(--border)';
-    b.style.background = sel?'var(--accent-light)':'var(--bg)';
+    b.style.borderColor = sel?'#2563eb':'#e2e8f0';
+    b.style.background = sel?'#dbeafe':'#f0f4f8';
   });
   document.getElementById('editBabyModal').classList.add('open');
 };
@@ -1532,8 +1437,8 @@ window.closeEditBabyOutside = ev => { if(ev.target===document.getElementById('ed
 window.selectEditBabyIcon = el => {
   editBabySelectedIcon = el.dataset.icon;
   document.querySelectorAll('#editBabyIcons .baby-icon-btn').forEach(b=>{
-    b.style.borderColor = b===el?'var(--accent)':'var(--border)';
-    b.style.background = b===el?'var(--accent-light)':'var(--bg)';
+    b.style.borderColor = b===el?'#2563eb':'#e2e8f0';
+    b.style.background = b===el?'#dbeafe':'#f0f4f8';
   });
 };
 
@@ -1580,18 +1485,21 @@ window.invitePartner = async () => {
   const email = document.getElementById('partnerEmail').value.trim().toLowerCase();
   if(!email){showToast('Bitte E-Mail eingeben',true);return;}
   if(!currentBabyId){showToast('Bitte zuerst ein Baby auswählen',true);return;}
+  const btn = document.querySelector('#settingsModal .modal-save-btn');
   try {
     // Check if already invited
     const existing = await getDocs(collection(db,`users/${currentUser.uid}/babies/${currentBabyId}/partners`));
     if(existing.docs.some(d=>d.data().email===email)){showToast('Bereits eingeladen',true);return;}
+
+    const baby = babies.find(b=>b.id===currentBabyId);
+    const babyName = baby ? baby.name : 'Baby';
 
     // Add partner to owner's baby
     await addDoc(collection(db,`users/${currentUser.uid}/babies/${currentBabyId}/partners`),{
       email, status:'pending', invitedAt:new Date().toISOString()
     });
 
-    // Add shared access entry for partner (they look this up on login)
-    // We store: partnerEmail -> {ownerUid, babyId}
+    // Add shared access entry for partner
     await setDoc(doc(db,`partnerInvites/${email.replace(/\./g,'_')}_${currentBabyId}`),{
       ownerUid: currentUser.uid,
       babyId: currentBabyId,
@@ -1600,8 +1508,16 @@ window.invitePartner = async () => {
       invitedAt: new Date().toISOString()
     });
 
+    // Send invitation email via EmailJS
+    await emailjs.send('service_v8vn6p1', 'template_cplnr0h', {
+      to_email: email,
+      name: currentUser.email,
+      app_url: window.location.origin,
+      baby_name: babyName
+    });
+
     document.getElementById('partnerEmail').value='';
-    showToast('✓ Partner eingeladen');
+    showToast('✓ Einladung gesendet an '+email);
     loadPartners();
   } catch(e){ console.error(e); showToast('⚠ Fehler: '+e.message,true); }
 };
