@@ -426,6 +426,43 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
 </div>
 
 
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal" onclick="closeSettingsOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ Einstellungen</div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+
+    <!-- PARTNER -->
+    <div style="margin-bottom:20px">
+      <div class="card-label" style="margin-bottom:12px">Partner einladen</div>
+      <div id="partnerList" style="margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px">
+        <input type="email" class="modal-input" id="partnerEmail" placeholder="partner@email.ch" style="margin-bottom:0;flex:1">
+        <button onclick="invitePartner()" style="padding:11px 16px;background:#2563eb;color:#fff;border:none;border-radius:10px;font-family:var(--font);font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap">Einladen</button>
+      </div>
+      <div style="font-size:.72rem;color:#64748b;margin-top:8px;line-height:1.5">Der Partner muss sich zuerst mit dieser E-Mail bei Babypass registrieren.</div>
+    </div>
+
+    <!-- PASSWORT -->
+    <div style="margin-bottom:20px">
+      <div class="card-label" style="margin-bottom:12px">Passwort ändern</div>
+      <input type="password" class="modal-input" id="settingsNewPw" autocomplete="new-password" data-lpignore="true" placeholder="Neues Passwort (min. 6 Zeichen)">
+      <input type="password" class="modal-input" id="settingsNewPw2" autocomplete="new-password" data-lpignore="true" placeholder="Passwort bestätigen">
+      <button class="modal-save-btn" onclick="changePassword()" style="margin-top:0">Passwort speichern</button>
+    </div>
+
+    <!-- CHECKPUNKTE -->
+    <div>
+      <div class="card-label" style="margin-bottom:12px">Checkpunkte anpassen</div>
+      <div id="checkpointSettings"></div>
+      <button onclick="addCheckpoint()" style="width:100%;padding:11px;border:1.5px dashed #e2e8f0;border-radius:10px;background:transparent;font-family:var(--font);font-size:.85rem;color:#2563eb;cursor:pointer;font-weight:600;margin-bottom:12px">+ Checkpunkt hinzufügen</button>
+      <button class="modal-save-btn" onclick="saveCheckpoints()">Checkpunkte speichern</button>
+    </div>
+  </div>
+</div>
+
 <!-- BABY SETTINGS MODAL -->
 <div class="modal-overlay" id="babySettingsModal" onclick="closeBabySettingsOutside(event)">
   <div class="modal">
