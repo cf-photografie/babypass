@@ -1361,7 +1361,8 @@ window.runExport=()=>{
   closeExport();
   showToast('📥 '+filtered.length+' Einträge exportiert');
 };
-window._oldExportXLSX=()=>{
+// old export removed
+window._unusedExport=()=>{
   if(!allEntries.length){showToast('Keine Daten');return;}
   const t=T[lang];
   const ws=XLSX.utils.json_to_sheet(allEntries.map(e=>({
@@ -1379,7 +1380,6 @@ window._oldExportXLSX=()=>{
   XLSX.utils.book_append_sheet(wb,ws,'Rapport');
   XLSX.writeFile(wb,`babypass_${new Date().toISOString().split('T')[0]}.xlsx`);
   showToast('📥 Excel exportiert');
-};
 };
 
 // ── MISC ───────────────────────────────────────────────────────────────────
