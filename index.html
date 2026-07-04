@@ -206,6 +206,8 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
 .modal-date-row{display:flex;gap:10px}
 .modal-save-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;border:none;border-radius:12px;font-family:var(--font);font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(37,99,235,.4);margin-top:8px}
 .modal-save-btn:disabled{opacity:.6}
+.export-filter-btn{padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:20px;background:#f0f4f8;font-family:var(--font);font-size:.75rem;cursor:pointer;color:#64748b;font-weight:600;transition:all .2s}
+.export-filter-btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
 .modal-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:.88rem;background:var(--bg);color:var(--text);outline:none;margin-bottom:10px}
 .modal-input:focus{border-color:var(--accent)}
 </style>
@@ -280,7 +282,7 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
         <button class="back-btn" onclick="showScreen('welcomeScreen')">←</button>
         <div>
           <h1 id="appTitle">Babypass</h1>
-          <div class="subtitle" id="appBabyName"></div>
+          <div class="subtitle" id="appBabyName" onclick="openBabySettings()" style="cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,255,255,.4)"></div>
         </div>
       </div>
       <div class="header-right">
@@ -421,6 +423,88 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
       <div id="pastEntries"></div>
     </div>
   </main>
+</div>
+
+
+<!-- BABY SETTINGS MODAL -->
+<div class="modal-overlay" id="babySettingsModal" onclick="closeBabySettingsOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">👶 Baby-Einstellungen</div>
+      <button class="modal-close" onclick="closeBabySettings()">✕</button>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-label">Baby Name & Icon</div>
+      <input type="text" class="modal-input" id="bsName" placeholder="Name des Babys">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="bsIcons">
+        <span class="baby-icon-btn" data-icon="👶" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">👶</span>
+        <span class="baby-icon-btn" data-icon="🌸" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌸</span>
+        <span class="baby-icon-btn" data-icon="⭐" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">⭐</span>
+        <span class="baby-icon-btn" data-icon="🌙" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌙</span>
+        <span class="baby-icon-btn" data-icon="🦋" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🦋</span>
+        <span class="baby-icon-btn" data-icon="🌈" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌈</span>
+        <span class="baby-icon-btn" data-icon="🐣" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🐣</span>
+        <span class="baby-icon-btn" data-icon="🧸" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🧸</span>
+        <span class="baby-icon-btn" data-icon="🌺" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌺</span>
+        <span class="baby-icon-btn" data-icon="🍀" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🍀</span>
+        <span class="baby-icon-btn" data-icon="🎀" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🎀</span>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-label">Forecast – Zeit zwischen Mahlzeiten</div>
+      <div style="display:flex;align-items:center;gap:12px;background:#f0f4f8;border-radius:12px;border:1.5px solid #e2e8f0;overflow:hidden">
+        <button onclick="changeForecastHours(-0.5)" style="width:52px;height:52px;border:none;background:transparent;color:#2563eb;font-size:1.5rem;cursor:pointer;font-weight:300">−</button>
+        <div style="flex:1;text-align:center;font-size:1.4rem;font-weight:700;font-family:var(--font)" id="bsForecastDisplay">3.0 h</div>
+        <button onclick="changeForecastHours(0.5)" style="width:52px;height:52px;border:none;background:transparent;color:#2563eb;font-size:1.5rem;cursor:pointer;font-weight:300">+</button>
+      </div>
+      <div style="font-size:.72rem;color:#64748b;margin-top:6px;text-align:center">Schritte: 0.5h · Min: 1h · Max: 6h</div>
+    </div>
+
+    <button class="modal-save-btn" onclick="saveBabySettings()">Einstellungen speichern</button>
+  </div>
+</div>
+
+<!-- EXPORT FILTER MODAL -->
+<div class="modal-overlay" id="exportModal" onclick="closeExportOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📥 Excel Export</div>
+      <button class="modal-close" onclick="closeExport()">✕</button>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-label">Zeitraum</div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1">
+          <div style="font-size:.7rem;color:#64748b;margin-bottom:4px">Von</div>
+          <input type="date" id="exportFrom" style="width:100%;padding:10px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:var(--font);font-size:.85rem;background:#f0f4f8;color:#0f172a;outline:none">
+        </div>
+        <div style="flex:1">
+          <div style="font-size:.7rem;color:#64748b;margin-bottom:4px">Bis</div>
+          <input type="date" id="exportTo" style="width:100%;padding:10px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:var(--font);font-size:.85rem;background:#f0f4f8;color:#0f172a;outline:none">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-label">Typ filtern</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px" id="exportTypeFilters">
+        <button class="export-filter-btn active" data-type="all" onclick="toggleExportFilter(this)">Alle</button>
+        <button class="export-filter-btn" data-type="milk" onclick="toggleExportFilter(this)">🍼 Babymilch</button>
+        <button class="export-filter-btn" data-type="food" onclick="toggleExportFilter(this)">🍽 Essen</button>
+        <button class="export-filter-btn" data-type="stuhl" onclick="toggleExportFilter(this)">🟤 Stuhl</button>
+        <button class="export-filter-btn" data-type="vitD3" onclick="toggleExportFilter(this)">☀️ Vitamin D3</button>
+        <button class="export-filter-btn" data-type="panda" onclick="toggleExportFilter(this)">🌼 Camilia</button>
+        <button class="export-filter-btn" data-type="urin" onclick="toggleExportFilter(this)">💧 Urin</button>
+        <button class="export-filter-btn" data-type="temp" onclick="toggleExportFilter(this)">🌡 Temperatur</button>
+      </div>
+    </div>
+
+    <div style="font-size:.8rem;color:#64748b;margin-bottom:12px" id="exportCount"></div>
+    <button class="modal-save-btn" onclick="runExport()">📥 Excel herunterladen</button>
+  </div>
 </div>
 
 <!-- EDIT MODAL -->
@@ -781,6 +865,7 @@ window.openBabyApp = () => {
   buildDrum('editDrumList', editMlVal);
   initDrum('editDrumWrap','editDrumList');
   // Small delay to ensure Firestore connection is ready
+  loadBabySettings();
   setTimeout(()=>subscribeHistory(), 300);
 };
 
@@ -1126,7 +1211,7 @@ function updateHeaderStats(entries){
   if(mealE.length){
     const last=mealE[0];
     const [hh,mm]=last.time.split(':').map(Number);
-    const next=new Date(); next.setHours(hh,mm,0,0); next.setTime(next.getTime()+3*60*60*1000);
+    const next=new Date(); next.setHours(hh,mm,0,0); next.setTime(next.getTime()+(babyForecastHours||3)*60*60*1000);
     document.getElementById('forecastValue').textContent=String(next.getHours()).padStart(2,'0')+':'+String(next.getMinutes()).padStart(2,'0')+' Uhr';
     document.getElementById('forecastSub').textContent='Letzte: '+last.time+' Uhr · '+(last.meal||'—');
     fb.style.display='flex';
@@ -1202,6 +1287,81 @@ window.clearAll=async()=>{
 
 // ── XLSX EXPORT ────────────────────────────────────────────────────────────
 window.exportXLSX=()=>{
+  // Set default date range (last 30 days to today)
+  const today=new Date().toISOString().split('T')[0];
+  const from=new Date(); from.setDate(from.getDate()-30);
+  document.getElementById('exportFrom').value=from.toISOString().split('T')[0];
+  document.getElementById('exportTo').value=today;
+  updateExportCount();
+  document.getElementById('exportModal').classList.add('open');
+};
+window.closeExport=()=>document.getElementById('exportModal').classList.remove('open');
+window.closeExportOutside=ev=>{if(ev.target===document.getElementById('exportModal'))closeExport();};
+let activeExportTypes=['all'];
+window.toggleExportFilter=btn=>{
+  const type=btn.dataset.type;
+  if(type==='all'){
+    activeExportTypes=['all'];
+    document.querySelectorAll('.export-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.type==='all'));
+  } else {
+    activeExportTypes=activeExportTypes.filter(t=>t!=='all');
+    btn.classList.toggle('active');
+    activeExportTypes=Array.from(document.querySelectorAll('.export-filter-btn.active')).map(b=>b.dataset.type);
+    if(!activeExportTypes.length){activeExportTypes=['all'];document.querySelector('[data-type="all"]').classList.add('active');}
+    document.querySelector('[data-type="all"]').classList.toggle('active',activeExportTypes.includes('all'));
+  }
+  updateExportCount();
+};
+function updateExportCount(){
+  const filtered=getFilteredEntries();
+  document.getElementById('exportCount').textContent=filtered.length+' Einträge werden exportiert';
+}
+function getFilteredEntries(){
+  const from=document.getElementById('exportFrom').value;
+  const to=document.getElementById('exportTo').value;
+  return allEntries.filter(e=>{
+    const inRange=(!from||e.date>=from)&&(!to||e.date<=to);
+    if(!inRange)return false;
+    if(activeExportTypes.includes('all'))return true;
+    return activeExportTypes.some(t=>{
+      if(t==='milk')return e.mealType==='milk';
+      if(t==='food')return e.mealType==='food';
+      if(t==='stuhl')return e.stuhl;
+      if(t==='vitD3')return e.vitD3;
+      if(t==='panda')return e.panda;
+      if(t==='urin')return e.urin;
+      if(t==='temp')return e.tempMode==='measured'&&e.temp;
+      return false;
+    });
+  });
+}
+document.addEventListener('change', e => {
+  if(e.target.id==='exportFrom'||e.target.id==='exportTo') updateExportCount();
+});
+window.runExport=()=>{
+  const filtered=getFilteredEntries();
+  if(!filtered.length){showToast('Keine Daten für diesen Filter',true);return;}
+  const t=T[lang];
+  const ws=XLSX.utils.json_to_sheet(filtered.map(e=>({
+    'Datum':e.date,'Zeit':e.time,
+    'Temperatur':e.tempMode==='none'?'—':(e.temp+'°C'),
+    'Mahlzeit':e.meal||'—',
+    [t.lblVitD3]:e.vitD3?'✓':'',
+    [t.lblPanda]:e.panda?'✓':'',
+    [t.lblUrin]:e.urin?'✓':'',
+    [t.lblStuhl]:e.stuhl?'✓':'',
+    'Bemerkung':e.note||''
+  })));
+  ws['!cols']=[14,8,12,16,10,10,10,10,30].map(w=>({wch:w}));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Rapport');
+  const from=document.getElementById('exportFrom').value;
+  const to=document.getElementById('exportTo').value;
+  XLSX.writeFile(wb,'babypass_'+from+'_'+to+'.xlsx');
+  closeExport();
+  showToast('📥 '+filtered.length+' Einträge exportiert');
+};
+window._oldExportXLSX=()=>{
   if(!allEntries.length){showToast('Keine Daten');return;}
   const t=T[lang];
   const ws=XLSX.utils.json_to_sheet(allEntries.map(e=>({
@@ -1219,6 +1379,7 @@ window.exportXLSX=()=>{
   XLSX.utils.book_append_sheet(wb,ws,'Rapport');
   XLSX.writeFile(wb,`babypass_${new Date().toISOString().split('T')[0]}.xlsx`);
   showToast('📥 Excel exportiert');
+};
 };
 
 // ── MISC ───────────────────────────────────────────────────────────────────
@@ -1263,7 +1424,9 @@ let emojiTarget = null;
 async function loadCheckpointSettings(){
   if(!currentUser) return;
   try {
-    const snap = await getDoc(doc(db,`users/${currentUser.uid}/settings/checkpoints`));
+    const _cpBaby = babies.find(b=>b.id===currentBabyId);
+    const _cpOwner = (_cpBaby&&_cpBaby.ownerUid)?_cpBaby.ownerUid:currentUser.uid;
+    const snap = await getDoc(doc(db,`users/${_cpOwner}/settings/checkpoints`));
     if(snap.exists()) checkpointSettings = snap.data();
     applyCheckpointSettings();
   } catch(e){ console.error(e); }
@@ -1377,7 +1540,9 @@ window.saveCheckpoints = async () => {
     if(btn) checkpointSettings[k].icon = btn.textContent;
   });
   try {
-    await setDoc(doc(db,`users/${currentUser.uid}/settings/checkpoints`), checkpointSettings);
+    const _saveBaby = babies.find(b=>b.id===currentBabyId);
+    const _saveOwner = (_saveBaby&&_saveBaby.ownerUid)?_saveBaby.ownerUid:currentUser.uid;
+    await setDoc(doc(db,`users/${_saveOwner}/settings/checkpoints`), checkpointSettings);
     applyCheckpointSettings();
     closeSettings();
     showToast('✓ Checkpunkte gespeichert');
@@ -1454,6 +1619,75 @@ window.saveEditBaby = async () => {
     closeEditBaby();
     showToast('✓ Baby aktualisiert');
   } catch(e){showToast('⚠ Fehler',true);console.error(e);}
+};
+
+
+// ── BABY SETTINGS ──────────────────────────────────────────────────────────
+let babyForecastHours = 3.0;
+let bsSelectedIcon = '👶';
+
+async function loadBabySettings(){
+  if(!currentUser||!currentBabyId) return;
+  try {
+    const baby = babies.find(b=>b.id===currentBabyId);
+    const ownerUid = (baby&&baby.ownerUid)?baby.ownerUid:currentUser.uid;
+    const snap = await getDoc(doc(db,`users/${ownerUid}/babies/${currentBabyId}/settings/general`));
+    if(snap.exists()){
+      babyForecastHours = snap.data().forecastHours||3.0;
+    }
+  } catch(e){ console.error(e); }
+}
+
+window.openBabySettings = () => {
+  const baby = babies.find(b=>b.id===currentBabyId);
+  if(!baby) return;
+  document.getElementById('bsName').value = baby.name||'';
+  bsSelectedIcon = baby.icon||'👶';
+  document.querySelectorAll('#bsIcons .baby-icon-btn').forEach(b=>{
+    const sel = b.dataset.icon===bsSelectedIcon;
+    b.style.borderColor = sel?'#2563eb':'#e2e8f0';
+    b.style.background = sel?'#dbeafe':'#f0f4f8';
+  });
+  document.getElementById('bsForecastDisplay').textContent = babyForecastHours.toFixed(1)+' h';
+  document.getElementById('babySettingsModal').classList.add('open');
+};
+window.closeBabySettings = () => document.getElementById('babySettingsModal').classList.remove('open');
+window.closeBabySettingsOutside = ev => { if(ev.target===document.getElementById('babySettingsModal')) closeBabySettings(); };
+
+window.selectBsIcon = el => {
+  bsSelectedIcon = el.dataset.icon;
+  document.querySelectorAll('#bsIcons .baby-icon-btn').forEach(b=>{
+    b.style.borderColor = b===el?'#2563eb':'#e2e8f0';
+    b.style.background = b===el?'#dbeafe':'#f0f4f8';
+  });
+};
+
+window.changeForecastHours = delta => {
+  babyForecastHours = Math.min(6, Math.max(1, babyForecastHours + delta));
+  babyForecastHours = Math.round(babyForecastHours * 2) / 2; // round to 0.5
+  document.getElementById('bsForecastDisplay').textContent = babyForecastHours.toFixed(1)+' h';
+};
+
+window.saveBabySettings = async () => {
+  const name = document.getElementById('bsName').value.trim();
+  if(!name){showToast('Bitte einen Namen eingeben',true);return;}
+  const baby = babies.find(b=>b.id===currentBabyId);
+  if(!baby) return;
+  const ownerUid = baby.ownerUid||currentUser.uid;
+  try {
+    // Update baby name + icon
+    await updateDoc(doc(db,`users/${ownerUid}/babies/${currentBabyId}`),{name, icon:bsSelectedIcon});
+    // Save forecast hours
+    await setDoc(doc(db,`users/${ownerUid}/babies/${currentBabyId}/settings/general`),{
+      forecastHours: babyForecastHours
+    }, {merge:true});
+    // Update local state
+    baby.name = name; baby.icon = bsSelectedIcon;
+    document.getElementById('appBabyName').textContent = bsSelectedIcon+' '+name;
+    renderBabyGrid();
+    closeBabySettings();
+    showToast('✓ Einstellungen gespeichert');
+  } catch(e){ console.error(e); showToast('⚠ Fehler: '+e.message, true); }
 };
 
 // ── PARTNER ────────────────────────────────────────────────────────────────
