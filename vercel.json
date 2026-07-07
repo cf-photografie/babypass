@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/webhook.js": {
-      "runtime": "edge"
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
