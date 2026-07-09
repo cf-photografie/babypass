@@ -175,6 +175,9 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
 #pastEntries.visible{display:block}
 .history-entry{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow-sm)}
 .history-entry.today-entry{border-left:4px solid var(--accent)}
+.history-entry.pending-entry{border-left:4px solid #ea580c;background:#fff7ed}
+.complete-pending-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 14px;background:#ea580c;color:#fff;border:none;border-radius:20px;font-family:var(--font);font-size:.78rem;font-weight:700;cursor:pointer}
+.complete-pending-btn:hover{background:#c2410c}
 .entry-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
 .entry-datetime{font-size:.88rem;font-weight:700}
 .entry-time{font-size:.75rem;color:var(--text2);margin-top:1px}
@@ -327,6 +330,13 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
 
   <main>
     <div class="tab-content active" id="formTab">
+      <div id="pendingBanner" style="display:none;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.2rem">⏳</span>
+        <div>
+          <div style="font-size:.82rem;font-weight:700;color:#ea580c" id="pendingBannerText">1 Eintrag wartet auf Details</div>
+          <button onclick="switchTab('history')" style="background:none;border:none;color:#ea580c;font-family:var(--font);font-size:.75rem;cursor:pointer;text-decoration:underline;padding:0;margin-top:2px">Im Verlauf anzeigen →</button>
+        </div>
+      </div>
       <div class="card">
         <div class="card-label" id="labelDateTime">Datum & Zeit</div>
         <div class="date-row">
@@ -409,6 +419,12 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
           <button class="icon-btn danger" onclick="clearAll()">🗑</button>
         </div>
       </div>
+      <!-- PENDING ENTRIES (SOMRIG) -->
+      <div id="pendingSection" style="display:none;margin-bottom:16px">
+        <div class="today-header" style="color:#ea580c">⏳ Ausstehend – Details nachtragen</div>
+        <div id="pendingList"></div>
+      </div>
+
       <div class="today-section">
         <div class="today-header" id="todayHeader">Heute</div>
         <div id="todayList"><div class="loading">⏳</div></div>
@@ -661,6 +677,17 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
       </div>
     </div>
     <button class="modal-save-btn" onclick="saveEditBaby()">Änderungen speichern</button>
+  </div>
+</div>
+
+<!-- LEGAL MODAL -->
+<div class="modal-overlay" id="legalModal" onclick="closeLegalOutside(event)">
+  <div class="modal" style="max-height:85vh">
+    <div class="modal-header">
+      <div class="modal-title" id="legalTitle">Impressum</div>
+      <button class="modal-close" onclick="closeLegal()">✕</button>
+    </div>
+    <div id="legalContent" style="font-size:.83rem;line-height:1.8;color:var(--text2);overflow-y:auto;max-height:60vh"></div>
   </div>
 </div>
 
@@ -1165,6 +1192,15 @@ window.saveEntry = async () => {
       lang, createdAt:new Date().toISOString()
     });
     setSyncStatus('ok'); showToast(T[lang].saved); resetForm();
+    // Delete pending entry if this was a completion
+    if(window._pendingId){
+      try{
+        const _pb=babies.find(b=>b.id===currentBabyId);
+        const _po=(_pb&&_pb.ownerUid)?_pb.ownerUid:currentUser.uid;
+        await deleteDoc(doc(db,`users/${_po}/babies/${currentBabyId}/rapporte`,window._pendingId));
+      }catch(e){console.error(e);}
+      window._pendingId=null;
+    }
   } catch(e){console.error(e);setSyncStatus('error');showToast('⚠ '+T[lang].syncError,true);}
   btn.disabled=false;
 };
@@ -1245,6 +1281,17 @@ function updateHeaderStats(entries){
   document.getElementById('milkTotalValue').textContent=milkTotal+' ml';
   const mealE=te.filter(e=>e.mealType==='milk'||e.mealType==='food').sort((a,b)=>a.time<b.time?1:-1);
   const fb=document.getElementById('forecastBox');
+  // Update pending banner
+  const pendingCount=entries.filter(e=>e.pending===true).length;
+  const banner=document.getElementById('pendingBanner');
+  if(banner){
+    if(pendingCount>0){
+      banner.style.display='flex';
+      document.getElementById('pendingBannerText').textContent=pendingCount+' Eintrag'+(pendingCount>1?' warten':' wartet')+' auf Details';
+    } else {
+      banner.style.display='none';
+    }
+  }
   if(mealE.length){
     const last=mealE[0];
     const [hh,mm]=last.time.split(':').map(Number);
@@ -1258,9 +1305,19 @@ function updateHeaderStats(entries){
 // ── RENDER HISTORY ─────────────────────────────────────────────────────────
 function renderHistory(entries){
   const today=new Date().toISOString().split('T')[0];
-  const te=entries.filter(e=>e.date===today).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-  const pe=entries.filter(e=>e.date<today).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-  const fe=entries.filter(e=>e.date>today).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  // Pending entries (from SOMRIG button)
+  const pending=entries.filter(e=>e.pending===true);
+  const pendingSection=document.getElementById('pendingSection');
+  const pendingList=document.getElementById('pendingList');
+  if(pending.length&&pendingList){
+    pendingSection.style.display='block';
+    pendingList.innerHTML=pending.map(e=>renderPendingEntry(e)).join('');
+  } else if(pendingSection){
+    pendingSection.style.display='none';
+  }
+  const te=entries.filter(e=>e.date===today&&!e.pending).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const pe=entries.filter(e=>e.date<today&&!e.pending).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const fe=entries.filter(e=>e.date>today&&!e.pending).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
 
   // Today
   document.getElementById('todayList').innerHTML=te.length?te.map(e=>renderEntry(e,true)).join(''):`<div class="history-empty">${T[lang].historyEmpty}</div>`;
@@ -1279,6 +1336,33 @@ function renderHistory(entries){
   document.getElementById('pastEntries').innerHTML=pe.length?pe.map(e=>renderEntry(e,false)).join(''):`<div class="history-empty">${T[lang].pastEmpty}</div>`;
   document.getElementById('pastToggleLabel').textContent=pastVisible?T[lang].pastHide:T[lang].pastShow;
 }
+
+
+function renderPendingEntry(e){
+  return '<div class="history-entry pending-entry">' +
+    '<div class="entry-header">' +
+      '<div>' +
+        '<div class="entry-datetime">📅 '+e.date+'</div>' +
+        '<div class="entry-time">🕐 '+e.time+' · Via SOMRIG</div>' +
+      '</div>' +
+      '<div class="entry-actions">' +
+        '<button class="delete-btn" onclick="deleteEntry(''+e.id+'')">✕</button>' +
+      '</div>' +
+    '</div>' +
+    '<div style="font-size:.82rem;color:#ea580c;font-weight:600">⏳ Details noch nicht eingetragen</div>' +
+    '<button class="complete-pending-btn" onclick="completePending(''+e.id+'',''+e.date+'',''+e.time+'')">✏️ Jetzt nachtragen</button>' +
+  '</div>';
+}
+
+window.completePending = (id, date, time) => {
+  // Switch to form tab and pre-fill date/time
+  switchTab('form');
+  document.getElementById('inputDate').value = date;
+  document.getElementById('inputTime').value = time;
+  // Store pending id to delete after save
+  window._pendingId = id;
+  showToast('Datum & Zeit vorausgefüllt – Details eintragen und speichern');
+};
 
 function renderEntry(e,isToday){
   const l=T[e.lang]||T.de;
@@ -1338,14 +1422,26 @@ let activeExportTypes=['all'];
 window.toggleExportFilter=btn=>{
   const type=btn.dataset.type;
   if(type==='all'){
-    activeExportTypes=['all'];
-    document.querySelectorAll('.export-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.type==='all'));
+    // Toggle alle an/aus
+    const allActive=btn.classList.contains('active');
+    if(allActive){
+      // Deselect all -> select nothing (show all)
+      activeExportTypes=[];
+      document.querySelectorAll('.export-filter-btn').forEach(b=>b.classList.remove('active'));
+    } else {
+      activeExportTypes=['all'];
+      document.querySelectorAll('.export-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.type==='all'));
+    }
   } else {
-    activeExportTypes=activeExportTypes.filter(t=>t!=='all');
+    // Toggle specific type
     btn.classList.toggle('active');
-    activeExportTypes=Array.from(document.querySelectorAll('.export-filter-btn.active')).map(b=>b.dataset.type);
-    if(!activeExportTypes.length){activeExportTypes=['all'];document.querySelector('[data-type="all"]').classList.add('active');}
-    document.querySelector('[data-type="all"]').classList.toggle('active',activeExportTypes.includes('all'));
+    // Remove 'all' from active if a specific type is selected
+    document.querySelector('[data-type="all"]').classList.remove('active');
+    activeExportTypes=Array.from(document.querySelectorAll('.export-filter-btn.active')).map(b=>b.dataset.type).filter(t=>t!=='all');
+    // If nothing selected, fall back to all
+    if(!activeExportTypes.length){
+      activeExportTypes=[];
+    }
   }
   updateExportCount();
 };
@@ -1357,9 +1453,12 @@ function getFilteredEntries(){
   const from=document.getElementById('exportFrom').value;
   const to=document.getElementById('exportTo').value;
   return allEntries.filter(e=>{
+    if(e.pending) return false; // exclude pending entries
     const inRange=(!from||e.date>=from)&&(!to||e.date<=to);
     if(!inRange)return false;
-    if(activeExportTypes.includes('all'))return true;
+    // No filter active or 'all' selected = show everything
+    if(!activeExportTypes.length||activeExportTypes.includes('all'))return true;
+    // Must match AT LEAST ONE active filter
     return activeExportTypes.some(t=>{
       if(t==='milk')return e.mealType==='milk';
       if(t==='food')return e.mealType==='food';
