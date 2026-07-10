@@ -1469,18 +1469,21 @@ function renderHistory(entries){
 
 
 function renderPendingEntry(e){
+  const id = e.id;
+  const date = e.date;
+  const time = e.time;
   return '<div class="history-entry pending-entry">' +
     '<div class="entry-header">' +
       '<div>' +
-        '<div class="entry-datetime">📅 '+formatDate(e.date,lang)+'</div>' +
-        '<div class="entry-time">🕐 '+e.time+' · Via SOMRIG</div>' +
+        '<div class="entry-datetime">📅 ' + formatDate(date, lang) + '</div>' +
+        '<div class="entry-time">🕐 ' + time + ' · Via SOMRIG</div>' +
       '</div>' +
       '<div class="entry-actions">' +
-        '<button class="delete-btn" onclick="deleteEntry(''+e.id+'')">✕</button>' +
+        '<button class="delete-btn" onclick="deleteEntry(\'' + id + '\')">✕</button>' +
       '</div>' +
     '</div>' +
     '<div style="font-size:.82rem;color:#ea580c;font-weight:600">⏳ Details noch nicht eingetragen</div>' +
-    '<button class="complete-pending-btn" onclick="completePending(''+e.id+'',''+e.date+'',''+e.time+'')">✏️ Jetzt nachtragen</button>' +
+    '<button class="complete-pending-btn" onclick="completePending(\'' + id + '\',\'' + date + '\',\'' + time + '\')">✏️ Jetzt nachtragen</button>' +
   '</div>';
 }
 
