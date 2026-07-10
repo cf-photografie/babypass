@@ -680,6 +680,45 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
   </div>
 </div>
 
+<!-- ADD BABY MODAL -->
+<div class="modal-overlay" id="addBabyModal" onclick="closeAddBabyOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Baby hinzufügen</div>
+      <button class="modal-close" onclick="closeAddBaby()">✕</button>
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Name des Babys</div>
+      <input type="text" class="modal-input" id="newBabyName" placeholder="z.B. Lena, Noah...">
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Icon</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap" id="addBabyIconsWrap">
+        <span class="baby-icon-btn" data-icon="👶" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">👶</span>
+        <span class="baby-icon-btn" data-icon="🌸" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌸</span>
+        <span class="baby-icon-btn" data-icon="⭐" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">⭐</span>
+        <span class="baby-icon-btn" data-icon="🌙" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌙</span>
+        <span class="baby-icon-btn" data-icon="🦋" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🦋</span>
+        <span class="baby-icon-btn" data-icon="🌈" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌈</span>
+        <span class="baby-icon-btn" data-icon="🐣" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🐣</span>
+        <span class="baby-icon-btn" data-icon="🧸" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🧸</span>
+      </div>
+    </div>
+    <button class="modal-save-btn" onclick="saveBaby()">Baby speichern</button>
+  </div>
+</div>
+
+<!-- EMOJI PICKER MODAL -->
+<div class="modal-overlay" id="emojiModal" onclick="closeEmojiOutside(event)">
+  <div class="modal" style="padding-bottom:20px">
+    <div class="modal-header">
+      <div class="modal-title">Icon wählen</div>
+      <button class="modal-close" onclick="closeEmoji()">✕</button>
+    </div>
+    <div id="emojiGrid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;max-height:300px;overflow-y:auto"></div>
+  </div>
+</div>
+
 <!-- LEGAL MODAL -->
 <div class="modal-overlay" id="legalModal" onclick="closeLegalOutside(event)">
   <div class="modal" style="max-height:85vh">
@@ -2047,6 +2086,8 @@ window.runMigration = async () => {
   }
 };
 
+window.showLegal = showLegal;
+window.closeLegal = closeLegal;
 // Enter key on auth
 document.getElementById('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth();});
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
