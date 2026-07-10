@@ -19,6 +19,20 @@
 <title>Babypass</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Century+Gothic&display=swap');
+
+/* LOADING SCREEN */
+.loading-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s ease}
+.loading-screen.hidden{opacity:0;pointer-events:none}
+.loading-logo{font-size:4rem;margin-bottom:16px;animation:bounce .8s infinite alternate}
+.loading-title{font-family:var(--font);font-size:1.6rem;font-weight:700;color:#fff;margin-bottom:8px}
+.loading-sub{font-size:.75rem;color:rgba(255,255,255,.6);letter-spacing:.1em;text-transform:uppercase}
+.loading-dots{display:flex;gap:6px;margin-top:20px}
+.loading-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);animation:dotPulse 1.2s infinite}
+.loading-dot:nth-child(2){animation-delay:.2s}
+.loading-dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+@keyframes dotPulse{0%,80%,100%{transform:scale(0.6);opacity:.5}40%{transform:scale(1);opacity:1}}
+
 :root{
   --bg:#f0f4f8;--surface:#fff;--surface2:#e8edf2;
   --accent:#2563eb;--accent-dark:#1d4ed8;--accent-light:#dbeafe;
@@ -213,11 +227,50 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
 .export-filter-btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
 .modal-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:.88rem;background:var(--bg);color:var(--text);outline:none;margin-bottom:10px}
 .modal-input:focus{border-color:var(--accent)}
+
+/* DARK MODE */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:#0f172a;--surface:#1e293b;--surface2:#1e293b;
+    --text:#f1f5f9;--text2:#94a3b8;--border:#334155;
+    --accent-light:#1e3a5f;
+    --green-light:#052e16;--shadow-sm:0 1px 3px rgba(0,0,0,.3);
+    --shadow:0 4px 6px rgba(0,0,0,.3);
+  }
+  .auth-box{background:#1e293b;color:#f1f5f9}
+  .auth-field input{background:#0f172a;color:#f1f5f9;border-color:#334155}
+  .auth-tabs{background:#0f172a}
+  .auth-tab.active{background:#1e293b}
+  .drum-fade-top{background:linear-gradient(to bottom,var(--bg),transparent)}
+  .drum-fade-bot{background:linear-gradient(to top,var(--bg),transparent)}
+  .modal{background:#1e293b}
+  .modal-input{background:#0f172a;color:#f1f5f9;border-color:#334155}
+  .toggle-btn{color:#94a3b8}
+  .export-filter-btn{background:#0f172a;color:#94a3b8;border-color:#334155}
+  .baby-card{background:#1e293b;border-color:#334155}
+  .baby-card.selected{background:#1e3a5f;border-color:#2563eb}
+  input[type="date"],input[type="time"]{background:#0f172a;color:#f1f5f9;border-color:#334155;color-scheme:dark}
+  textarea{background:#0f172a;color:#f1f5f9}
+  input[type="text"]{background:#0f172a;color:#f1f5f9}
+}
 </style>
 </head>
 <body>
 
 <!-- ── AUTH SCREEN ── -->
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen" class="loading-screen">
+  <div class="loading-logo">👶</div>
+  <div class="loading-title">Babypass</div>
+  <div class="loading-sub">Wird geladen...</div>
+  <div class="loading-dots">
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+  </div>
+</div>
+
 <div class="screen active" id="authScreen">
   <div class="auth-screen" style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px">
     <div class="auth-box">
@@ -427,6 +480,7 @@ textarea:focus,input[type="text"]:focus{border-color:var(--accent)}
 
       <div class="today-section">
         <div class="today-header" id="todayHeader">Heute</div>
+        <div id="todaySummary" style="display:none;background:var(--surface);border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:.78rem;color:var(--text2);border:1px solid var(--border);display:flex;flex-wrap:wrap;gap:8px"></div>
         <div id="todayList"><div class="loading">⏳</div></div>
       </div>
       <!-- FUTURE ENTRIES -->
@@ -804,7 +858,7 @@ function closeLegalOutside(ev) { if(ev.target===document.getElementById('legalMo
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, onSnapshot, setDoc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, browserLocalPersistence, setPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const app = initializeApp({
@@ -817,6 +871,8 @@ const app = initializeApp({
 });
 const db = getFirestore(app);
 const auth = getAuth(app);
+// Keep user logged in across sessions
+setPersistence(auth, browserLocalPersistence).catch(e => console.error('Persistence error:', e));
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 let currentUser = null;
@@ -839,7 +895,15 @@ const editChecks = {vitD3:false,panda:false,urin:false,stuhl:false};
 let unsub = null;
 
 // ── AUTH STATE ─────────────────────────────────────────────────────────────
+// Hide loading screen once auth state is known
+const _hideLoading = () => {
+  const ls = document.getElementById('loadingScreen');
+  if(ls) ls.classList.add('hidden');
+  setTimeout(()=>{if(ls)ls.style.display='none';}, 500);
+};
+
 onAuthStateChanged(auth, user => {
+  _hideLoading();
   if(user){
     currentUser = user;
     document.getElementById('welcomeUserEmail').textContent = user.email;
@@ -969,6 +1033,7 @@ window.openBabyApp = () => {
   initDrum('editDrumWrap','editDrumList');
   // Small delay to ensure Firestore connection is ready
   loadBabySettings();
+  flushOfflineQueue();
   setTimeout(()=>subscribeHistory(), 300);
 };
 
@@ -1221,16 +1286,17 @@ window.saveEntry = async () => {
   btn.disabled=true; setSyncStatus('syncing');
   const meal=mealType==='milk'?mlVal+' ml':mealType==='food'?(document.getElementById('mealFoodInput').value||T[lang].mealFood):'—';
   try {
-    await addDoc(rapportCol(),{
-      date:document.getElementById('inputDate').value,
+    const _entryData = {
       time:document.getElementById('inputTime').value,
       tempMode, temp:tempMode==='measured'?(tempVal/10).toFixed(1):null,
       mealType, meal,
       ...Object.fromEntries(Object.keys(checks).map(k=>[k,checks[k]])),
       note:document.getElementById('noteInput').value,
       lang, createdAt:new Date().toISOString()
-    });
-    setSyncStatus('ok'); showToast(T[lang].saved); resetForm();
+    };
+    if(!isOnline){ queueOfflineEntry(_entryData); setSyncStatus('error'); resetForm(); btn.disabled=false; return; }
+    await addDoc(rapportCol(), _entryData);
+    setSyncStatus('ok'); showToast(T[lang].saved); haptic('success'); resetForm();
     // Delete pending entry if this was a completion
     if(window._pendingId){
       try{
@@ -1257,6 +1323,10 @@ window.openEdit = id => {
   editMlVal=e.mealType==='milk'?parseInt(e.meal)||200:200;
   setEditMealType(editMealType);
   buildDrum('editDrumList',editMlVal);
+  // Re-init drum in edit modal (needed after modal was closed)
+  const editWrap=document.getElementById('editDrumWrap');
+  if(editWrap) editWrap._drumInit=false;
+  initDrum('editDrumWrap','editDrumList');
   document.getElementById('editMealFoodInput').value=e.mealType==='food'?e.meal:'';
   ['vitD3','panda','urin','stuhl'].forEach(k=>{
     editChecks[k]=!!e[k];
@@ -1285,7 +1355,7 @@ window.saveEdit = async () => {
       ...Object.fromEntries(Object.keys(editChecks).map(k=>[k,editChecks[k]])),
       note:document.getElementById('editNote').value
     });
-    showToast(T[lang].updated); closeModal();
+    showToast(T[lang].updated); haptic('success'); closeModal();
   } catch(e){console.error(e);showToast('⚠ '+T[lang].syncError,true);}
   btn.disabled=false;
 };
@@ -1300,10 +1370,14 @@ function subscribeHistory(){
       allEntries=snap.docs.map(d=>({id:d.id,...d.data()}));
       updateHeaderStats(allEntries); renderHistory(allEntries); setSyncStatus('ok');
     },err=>{
-      console.error(err);
+      console.error('Firestore error:',err.code, err.message);
       setSyncStatus('error');
-      // Retry after 2 seconds
-      setTimeout(()=>subscribeHistory(), 2000);
+      if(err.code==='permission-denied'){
+        showToast('⚠️ Sitzung abgelaufen – bitte neu einloggen', true);
+        setTimeout(()=>doLogout(), 3000);
+      } else {
+        setTimeout(()=>subscribeHistory(), 3000);
+      }
     });
   } catch(e) {
     console.error(e); setSyncStatus('error');
@@ -1355,6 +1429,21 @@ function renderHistory(entries){
     pendingSection.style.display='none';
   }
   const te=entries.filter(e=>e.date===today&&!e.pending).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  // Day summary
+  const sumEl=document.getElementById('todaySummary');
+  if(sumEl&&te.length){
+    const milkCount=te.filter(e=>e.mealType==='milk').length;
+    const milkTotal=te.filter(e=>e.mealType==='milk').reduce((s,e)=>s+(parseInt(e.meal)||0),0);
+    const foodCount=te.filter(e=>e.mealType==='food').length;
+    const stuhlCount=te.filter(e=>e.stuhl).length;
+    const parts=[];
+    if(milkCount) parts.push('🍼 '+milkCount+'× · '+milkTotal+' ml total');
+    if(foodCount) parts.push('🍽 '+foodCount+'× Essen');
+    if(stuhlCount) parts.push('🟤 '+stuhlCount+'× Stuhl');
+    parts.push('📋 '+te.length+' Einträge');
+    sumEl.style.display=parts.length?'flex':'none';
+    sumEl.innerHTML=parts.map(p=>'<span style="background:var(--surface2);padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600">'+p+'</span>').join('');
+  } else if(sumEl){sumEl.style.display='none';}
   const pe=entries.filter(e=>e.date<today&&!e.pending).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
   const fe=entries.filter(e=>e.date>today&&!e.pending).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
 
@@ -1381,7 +1470,7 @@ function renderPendingEntry(e){
   return '<div class="history-entry pending-entry">' +
     '<div class="entry-header">' +
       '<div>' +
-        '<div class="entry-datetime">📅 '+e.date+'</div>' +
+        '<div class="entry-datetime">📅 '+formatDate(e.date,lang)+'</div>' +
         '<div class="entry-time">🕐 '+e.time+' · Via SOMRIG</div>' +
       '</div>' +
       '<div class="entry-actions">' +
@@ -1436,7 +1525,7 @@ window.togglePast=()=>{
 // ── DELETE / CLEAR ─────────────────────────────────────────────────────────
 window.deleteEntry=async id=>{
   if(!confirm(T[lang].confirmDelete))return;
-  try{const _b=babies.find(b=>b.id===currentBabyId);const _o=(_b&&_b.ownerUid)?_b.ownerUid:currentUser.uid;await deleteDoc(doc(db,`users/${_o}/babies/${currentBabyId}/rapporte`,id));}
+  try{const _b=babies.find(b=>b.id===currentBabyId);const _o=(_b&&_b.ownerUid)?_b.ownerUid:currentUser.uid;await deleteDoc(doc(db,`users/${_o}/babies/${currentBabyId}/rapporte`,id));haptic('light');}
   catch(e){showToast('⚠ Fehler',true);}
 };
 window.clearAll=async()=>{
@@ -1518,7 +1607,7 @@ window.runExport=()=>{
   if(!filtered.length){showToast('Keine Daten für diesen Filter',true);return;}
   const t=T[lang];
   const ws=XLSX.utils.json_to_sheet(filtered.map(e=>({
-    'Datum':e.date,'Zeit':e.time,
+    'Datum':formatDateShort(e.date,lang),'Zeit':e.time,
     'Temperatur':e.tempMode==='none'?'—':(e.temp+'°C'),
     'Mahlzeit':e.meal||'—',
     [t.lblVitD3]:e.vitD3?'✓':'',
@@ -1541,7 +1630,7 @@ window._unusedExport=()=>{
   if(!allEntries.length){showToast('Keine Daten');return;}
   const t=T[lang];
   const ws=XLSX.utils.json_to_sheet(allEntries.map(e=>({
-    'Datum':e.date,'Zeit':e.time,
+    'Datum':formatDateShort(e.date,lang),'Zeit':e.time,
     'Temperatur':e.tempMode==='none'?'—':(e.temp+'°C'),
     'Mahlzeit':e.meal||'—',
     [t.lblVitD3]:e.vitD3?'✓':'',
@@ -1797,6 +1886,25 @@ window.saveEditBaby = async () => {
 };
 
 
+
+// ── DATE FORMATTING ────────────────────────────────────────────────────────
+function formatDate(dateStr, lang) {
+  try {
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString(lang==='it'?'it-IT':'de-CH', {
+      weekday:'long', day:'numeric', month:'long', year:'numeric'
+    });
+  } catch(e){ return dateStr; }
+}
+function formatDateShort(dateStr, lang) {
+  try {
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString(lang==='it'?'it-IT':'de-CH', {
+      day:'numeric', month:'short'
+    });
+  } catch(e){ return dateStr; }
+}
+
 // ── BABY SETTINGS ──────────────────────────────────────────────────────────
 let babyForecastHours = 3.0;
 let bsSelectedIcon = '👶';
@@ -1954,12 +2062,10 @@ async function checkPartnerAccess(){
         // Load baby info
         const babyDoc = await getDoc(doc(db,`users/${data.ownerUid}/babies/${data.babyId}`));
         if(babyDoc.exists()){
-          babies.push({
-            id:data.babyId,
-            ownerUid:data.ownerUid,
-            isShared:true,
-            ...babyDoc.data()
-          });
+          const _bd=babyDoc.data();
+          const _ok=confirm('👶 Einladung!\n\n'+data.email+' teilt «'+(_bd.name||'Baby')+'» mit dir.\n\nZugriff akzeptieren?');
+          if(!_ok) continue;
+          babies.push({id:data.babyId,ownerUid:data.ownerUid,isShared:true,..._bd});
           // Mark invite as active
           await setDoc(inv.ref,{...data,status:'active'},{merge:true});
           // Update partner status on owner side
@@ -2088,6 +2194,82 @@ window.runMigration = async () => {
 
 window.showLegal = showLegal;
 window.closeLegal = closeLegal;
+
+
+
+// ── OFFLINE QUEUE ──────────────────────────────────────────────────────────
+let isOnline = navigator.onLine;
+window.addEventListener('online', ()=>{
+  isOnline=true;
+  setSyncStatus('ok');
+  showToast('✅ Wieder online – Daten werden synchronisiert');
+  flushOfflineQueue();
+});
+window.addEventListener('offline', ()=>{
+  isOnline=false;
+  setSyncStatus('error');
+  showToast('⚠️ Offline – Einträge werden lokal gespeichert', true);
+});
+
+const OFFLINE_KEY='babypass_offline_queue';
+function getOfflineQueue(){ try{return JSON.parse(localStorage.getItem(OFFLINE_KEY)||'[]');}catch(e){return[];} }
+function saveOfflineQueue(q){ localStorage.setItem(OFFLINE_KEY, JSON.stringify(q)); }
+
+function queueOfflineEntry(entry){
+  const q=getOfflineQueue();
+  q.push({...entry, _queuedAt:new Date().toISOString()});
+  saveOfflineQueue(q);
+  showToast('💾 Lokal gespeichert – wird synchronisiert wenn online');
+}
+
+async function flushOfflineQueue(){
+  const q=getOfflineQueue();
+  if(!q.length||!currentUser||!currentBabyId) return;
+  let synced=0;
+  for(const entry of q){
+    try{
+      const {_queuedAt,...data}=entry;
+      await addDoc(rapportCol(), data);
+      synced++;
+    } catch(e){console.error('Queue flush error:',e);}
+  }
+  if(synced>0){
+    saveOfflineQueue([]);
+    showToast('✅ '+synced+' gespeicherte Einträge synchronisiert');
+    haptic('success');
+  }
+}
+
+// ── HAPTIC FEEDBACK ────────────────────────────────────────────────────────
+function haptic(type='light'){
+  try {
+    if(window.navigator.vibrate){
+      if(type==='light') navigator.vibrate(10);
+      else if(type==='success') navigator.vibrate([10,50,10]);
+      else if(type==='error') navigator.vibrate([50,30,50]);
+    }
+  } catch(e){}
+}
+
+// ── SWIPE GESTURES ─────────────────────────────────────────────────────────
+(function(){
+  let sx=0, sy=0;
+  const tabs=['form','history'];
+  document.addEventListener('touchstart', e=>{
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+  }, {passive:true});
+  document.addEventListener('touchend', e=>{
+    if(!document.getElementById('appScreen').classList.contains('active')) return;
+    const dx=e.changedTouches[0].clientX-sx;
+    const dy=Math.abs(e.changedTouches[0].clientY-sy);
+    if(Math.abs(dx)>60&&dy<40){
+      const cur=tabs.findIndex(t=>document.getElementById(t+'Tab').classList.contains('active'));
+      if(dx<0&&cur<tabs.length-1) switchTab(tabs[cur+1]);
+      else if(dx>0&&cur>0) switchTab(tabs[cur-1]);
+    }
+  }, {passive:true});
+})();
+
 // Enter key on auth
 document.getElementById('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth();});
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
