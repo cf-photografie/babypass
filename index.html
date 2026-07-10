@@ -1474,11 +1474,11 @@ function renderPendingEntry(e){
         '<div class="entry-time">🕐 '+e.time+' · Via SOMRIG</div>' +
       '</div>' +
       '<div class="entry-actions">' +
-        '<button class="delete-btn" onclick="deleteEntry(''+e.id+'')">✕</button>' +
+        '<button class="delete-btn" onclick="deleteEntry(\'' + e.id + '\')">✕</button>' +
       '</div>' +
     '</div>' +
     '<div style="font-size:.82rem;color:#ea580c;font-weight:600">⏳ Details noch nicht eingetragen</div>' +
-    '<button class="complete-pending-btn" onclick="completePending(''+e.id+'',''+e.date+'',''+e.time+'')">✏️ Jetzt nachtragen</button>' +
+    '<button class="complete-pending-btn" onclick="completePending(\'' + e.id + '\', \'' + e.date + '\', \'' + e.time + '\')">✏️ Jetzt nachtragen</button>' +
   '</div>';
 }
 
