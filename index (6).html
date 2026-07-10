@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1e3a8a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Babypass">
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init("IeHTlhUhlZ5310n1l");</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👶</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563eb'/><text y='.85em' font-size='75' x='12'>👶</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👶</text></svg>">
+<title>Babypass</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── AUTH SCREEN ── -->
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen" class="loading-screen">
+  <div class="loading-logo">👶</div>
+  <div class="loading-title">Babypass</div>
+  <div class="loading-sub">Wird geladen...</div>
+  <div class="loading-dots">
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+  </div>
+</div>
+
+<div class="screen active" id="authScreen">
+  <div class="auth-screen" style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <span class="auth-logo-icon">👶</span>
+        <h1>Babypass</h1>
+        <p>Dein Baby-Tagebuch</p>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="setAuthTab('login')" id="authTabLogin">Anmelden</button>
+        <button class="auth-tab" onclick="setAuthTab('register')" id="authTabRegister">Registrieren</button>
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <div class="auth-field">
+        <label>E-Mail</label>
+        <input type="email" id="authEmail" placeholder="name@beispiel.ch" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Passwort</label>
+        <input type="password" id="authPassword" placeholder="Mindestens 6 Zeichen" autocomplete="current-password" data-lpignore="true" data-form-type="other" spellcheck="false">
+      </div>
+      <button class="auth-btn" id="authBtn" onclick="doAuth()">Anmelden</button>
+      <div id="forgotPwWrap" style="text-align:center;margin-top:12px">
+        <button onclick="doForgotPassword()" style="background:none;border:none;color:var(--accent);font-family:var(--font);font-size:.82rem;cursor:pointer;text-decoration:underline">Passwort vergessen?</button>
+      </div>
+      <div style="text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:16px;justify-content:center">
+        <button onclick="showLegal('impressum')" style="background:none;border:none;color:var(--text2);font-family:var(--font);font-size:.75rem;cursor:pointer;text-decoration:underline">Impressum</button>
+        <button onclick="showLegal('datenschutz')" style="background:none;border:none;color:var(--text2);font-family:var(--font);font-size:.75rem;cursor:pointer;text-decoration:underline">Datenschutz</button>
+        <button onclick="showLegal('agb')" style="background:none;border:none;color:var(--text2);font-family:var(--font);font-size:.75rem;cursor:pointer;text-decoration:underline">AGB</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── WELCOME / BABY SCREEN ── -->
+<div class="screen" id="welcomeScreen">
+  <div class="welcome-header">
+    <div>
+      <h1>👶 Babypass</h1>
+      <p id="welcomeUserEmail"></p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="logout-btn" onclick="openSettings()">⚙️</button>
+      <button class="logout-btn" onclick="doLogout()">Abmelden</button>
+    </div>
+  </div>
+  <div class="welcome-body">
+    <div class="welcome-title" id="welcomeTitle">Meine Babys</div>
+    <div class="baby-grid" id="babyGrid"></div>
+    <button class="add-baby-btn" onclick="openAddBaby()" id="addBabyBtn">+ Baby hinzufügen</button>
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
+      <button onclick="showLegal('impressum')" style="background:none;border:none;color:var(--text2);font-family:var(--font);font-size:.72rem;cursor:pointer;text-decoration:underline;margin:0 6px">Impressum</button>
+      <button onclick="showLegal('datenschutz')" style="background:none;border:none;color:var(--text2);font-family:var(--font);font-size:.72rem;cursor:pointer;text-decoration:underline;margin:0 6px">Datenschutz</button>
+      <button onclick="showLegal('agb')" style="background:none;border:none;color:var(--text2);font-family:var(--font);font-size:.72rem;cursor:pointer;text-decoration:underline;margin:0 6px">AGB</button>
+    </div>
+    <button class="open-baby-btn" id="openBabyBtn" onclick="openBabyApp()">Protokoll öffnen →</button>
+  </div>
+</div>
+
+<!-- ── MAIN APP SCREEN ── -->
+<div class="screen" id="appScreen">
+  <header>
+    <div class="header-top">
+      <div class="header-left">
+        <button class="back-btn" onclick="showScreen('welcomeScreen')">←</button>
+        <div>
+          <h1 id="appTitle">Babypass</h1>
+          <div class="subtitle" id="appBabyName"></div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="sync-dot" id="syncDot"></div>
+        <button class="logout-btn" onclick="openSettings()" style="padding:5px 10px;font-size:.9rem">⚙️</button>
+        <div class="lang-toggle">
+          <button class="lang-btn active" onclick="setLang('de')">DE</button>
+          <button class="lang-btn" onclick="setLang('it')">IT</button>
+        </div>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="stat-box">
+        <span class="stat-emoji">🟤</span>
+        <div>
+          <div class="stat-label" id="stuhlCounterLabel">Stuhl heute</div>
+          <div class="stat-value" id="stuhlCounterValue">0</div>
+        </div>
+      </div>
+      <div class="stat-box">
+        <span class="stat-emoji">🍼</span>
+        <div>
+          <div class="stat-label" id="milkTotalLabel">Milch heute</div>
+          <div class="stat-value" id="milkTotalValue">0 ml</div>
+        </div>
+      </div>
+    </div>
+    <div class="forecast-box" id="forecastBox" style="display:none">
+      <span style="font-size:1.2rem">🕐</span>
+      <div>
+        <div class="forecast-label" id="forecastLabel">Nächste Mahlzeit</div>
+        <div class="forecast-value" id="forecastValue">—</div>
+        <div class="forecast-sub" id="forecastSub"></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('form')" id="tabForm">Erfassen</button>
+    <button class="tab" onclick="switchTab('history')" id="tabHistory">Verlauf</button>
+  </div>
+
+  <main>
+    <div class="tab-content active" id="formTab">
+      <div id="pendingBanner" style="display:none;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.2rem">⏳</span>
+        <div>
+          <div style="font-size:.82rem;font-weight:700;color:#ea580c" id="pendingBannerText">1 Eintrag wartet auf Details</div>
+          <button onclick="switchTab('history')" style="background:none;border:none;color:#ea580c;font-family:var(--font);font-size:.75rem;cursor:pointer;text-decoration:underline;padding:0;margin-top:2px">Im Verlauf anzeigen →</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="labelDateTime">Datum & Zeit</div>
+        <div class="date-row">
+          <input type="date" id="inputDate">
+          <input type="time" id="inputTime">
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="labelTemp">Temperatur</div>
+        <div class="toggle-group">
+          <button class="toggle-btn active" onclick="setTempMode('none')" id="tempNoneBtn">Nicht gemessen</button>
+          <button class="toggle-btn" onclick="setTempMode('measured')" id="tempMeasuredBtn">Gemessen</button>
+        </div>
+        <div id="tempMeasuredSection" style="display:none">
+          <div class="stepper">
+            <button class="stepper-btn" onclick="doStep('temp',-1)">−</button>
+            <div class="stepper-divider"></div>
+            <div class="stepper-value" id="tempDisplay">37.0°C</div>
+            <div class="stepper-divider"></div>
+            <button class="stepper-btn" onclick="doStep('temp',1)">+</button>
+          </div>
+          <div style="text-align:center;margin-top:10px">
+            <span class="temp-status temp-normal" id="tempStatus">Normal</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="labelMeal">Mahlzeit</div>
+        <div class="toggle-group">
+          <button class="toggle-btn active" onclick="setMealType('milk')" id="mealMilkBtn">Babymilch</button>
+          <button class="toggle-btn" onclick="setMealType('food')" id="mealFoodBtn">Essen</button>
+          <button class="toggle-btn" onclick="setMealType('none')" id="mealNoneBtn">—</button>
+        </div>
+        <div id="mealMilkSection">
+          <div class="drum-wrap" id="drumWrap">
+            <div class="drum-list" id="drumList"></div>
+            <div class="drum-fade-top"></div>
+            <div class="drum-fade-bot"></div>
+            <div class="drum-selector"></div>
+          </div>
+        </div>
+        <div id="mealFoodSection" style="display:none">
+          <input type="text" id="mealFoodInput" oninput="filterFoodSuggestions()" onfocus="showFoodSuggestions()" placeholder="">
+          <div id="foodSuggestions" style="display:none;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;margin-top:6px;overflow:hidden;box-shadow:var(--shadow)"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="labelCheckpoints">Checkpunkte</div>
+        <div class="check-grid" id="checkGrid">
+          <div class="check-item" onclick="toggleCheck('vitD3')" id="checkVitD3">
+            <div class="check-box" id="boxVitD3"></div>
+            <div><div class="check-emoji">☀️</div><div class="check-label" id="lblVitD3">Vitamin D3</div></div>
+          </div>
+          <div class="check-item" onclick="toggleCheck('panda')" id="checkPanda">
+            <div class="check-box" id="boxPanda"></div>
+            <div><div class="check-emoji">🌼</div><div class="check-label" id="lblPanda">Camilia</div></div>
+          </div>
+          <div class="check-item" onclick="toggleCheck('urin')" id="checkUrin">
+            <div class="check-box" id="boxUrin"></div>
+            <div><div class="check-emoji">💧</div><div class="check-label" id="lblUrin">Urin</div></div>
+          </div>
+          <div class="check-item" onclick="toggleCheck('stuhl')" id="checkStuhl">
+            <div class="check-box" id="boxStuhl"></div>
+            <div><div class="check-emoji">🟤</div><div class="check-label" id="lblStuhl">Stuhl</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="labelNote">Bemerkung</div>
+        <textarea id="noteInput" placeholder="Freitext..."></textarea>
+      </div>
+      <button class="submit-btn" id="submitBtn" onclick="saveEntry()">Rapport speichern</button>
+    </div>
+
+    <div class="tab-content" id="historyTab">
+      <div class="history-toolbar">
+        <div class="history-title" id="historyTitle">Verlauf</div>
+        <div class="toolbar-btns">
+          <button class="icon-btn export" onclick="exportXLSX()">📥 Excel</button>
+          <button class="icon-btn danger" onclick="clearAll()">🗑</button>
+        </div>
+      </div>
+      <!-- PENDING ENTRIES (SOMRIG) -->
+      <div id="pendingSection" style="display:none;margin-bottom:16px">
+        <div class="today-header" style="color:#ea580c">⏳ Ausstehend – Details nachtragen</div>
+        <div id="pendingList"></div>
+      </div>
+
+      <div class="today-section">
+        <div class="today-header" id="todayHeader">Heute</div>
+        <div id="todaySummary" style="display:none;background:var(--surface);border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:.78rem;color:var(--text2);border:1px solid var(--border);display:flex;flex-wrap:wrap;gap:8px"></div>
+        <div id="todayList"><div class="loading">⏳</div></div>
+      </div>
+      <!-- FUTURE ENTRIES -->
+      <div id="futureSection" style="display:none;margin-bottom:16px">
+        <div class="today-header" style="color:#ea580c">Künftige Einträge</div>
+        <div id="futureEntries"></div>
+      </div>
+
+      <button class="past-toggle-btn" id="pastToggleBtn" onclick="togglePast()">▼ <span id="pastToggleLabel">Frühere Einträge anzeigen</span></button>
+      <div id="pastEntries"></div>
+    </div>
+  </main>
+</div>
+
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal" onclick="closeSettingsOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ Einstellungen</div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+
+    <!-- BABY -->
+    <div id="settingsBabySection" style="margin-bottom:20px">
+      <div class="card-label" style="margin-bottom:12px">👶 Baby Name & Icon</div>
+      <input type="text" class="modal-input" id="bsName" placeholder="Name des Babys">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;margin-bottom:16px" id="bsIcons">
+        <span class="baby-icon-btn" data-icon="👶" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">👶</span>
+        <span class="baby-icon-btn" data-icon="🌸" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌸</span>
+        <span class="baby-icon-btn" data-icon="⭐" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">⭐</span>
+        <span class="baby-icon-btn" data-icon="🌙" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌙</span>
+        <span class="baby-icon-btn" data-icon="🦋" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🦋</span>
+        <span class="baby-icon-btn" data-icon="🌈" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌈</span>
+        <span class="baby-icon-btn" data-icon="🐣" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🐣</span>
+        <span class="baby-icon-btn" data-icon="🧸" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🧸</span>
+        <span class="baby-icon-btn" data-icon="🌺" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌺</span>
+        <span class="baby-icon-btn" data-icon="🍀" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🍀</span>
+        <span class="baby-icon-btn" data-icon="🎀" onclick="selectBsIcon(this)" style="font-size:1.6rem;cursor:pointer;padding:7px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🎀</span>
+      </div>
+      <div class="card-label" style="margin-bottom:12px">Forecast – Zeit zwischen Mahlzeiten</div>
+      <div style="display:flex;align-items:center;gap:12px;background:#f0f4f8;border-radius:12px;border:1.5px solid #e2e8f0;overflow:hidden">
+        <button onclick="changeForecastHours(-0.5)" style="width:52px;height:52px;border:none;background:transparent;color:#2563eb;font-size:1.5rem;cursor:pointer;font-weight:300">−</button>
+        <div style="flex:1;text-align:center;font-size:1.4rem;font-weight:700;font-family:var(--font)" id="bsForecastDisplay">3.0 h</div>
+        <button onclick="changeForecastHours(0.5)" style="width:52px;height:52px;border:none;background:transparent;color:#2563eb;font-size:1.5rem;cursor:pointer;font-weight:300">+</button>
+      </div>
+      <div style="font-size:.72rem;color:#64748b;margin:6px 0 12px;text-align:center">Schritte: 0.5h · Min: 1h · Max: 6h</div>
+      <button class="modal-save-btn" onclick="saveBabySettings()" style="margin-top:0">Baby-Einstellungen speichern</button>
+    </div>
+    <div id="settingsNoBabyNote" style="display:none;margin-bottom:20px;font-size:.8rem;color:var(--text2)">⚠ Bitte zuerst ein Baby auswählen.</div>
+
+    <!-- PARTNER -->
+    <div style="margin-bottom:20px">
+      <div class="card-label" style="margin-bottom:12px">Partner einladen</div>
+      <div id="partnerList" style="margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px">
+        <input type="email" class="modal-input" id="partnerEmail" placeholder="partner@email.ch" style="margin-bottom:0;flex:1">
+        <button onclick="invitePartner()" style="padding:11px 16px;background:#2563eb;color:#fff;border:none;border-radius:10px;font-family:var(--font);font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap">Einladen</button>
+      </div>
+      <div style="font-size:.72rem;color:#64748b;margin-top:8px;line-height:1.5">Der Partner muss sich zuerst mit dieser E-Mail bei Babypass registrieren.</div>
+    </div>
+
+    <!-- PASSWORT -->
+    <div style="margin-bottom:20px">
+      <div class="card-label" style="margin-bottom:12px">Passwort ändern</div>
+      <input type="password" class="modal-input" id="settingsNewPw" autocomplete="new-password" data-lpignore="true" placeholder="Neues Passwort (min. 6 Zeichen)">
+      <input type="password" class="modal-input" id="settingsNewPw2" autocomplete="new-password" data-lpignore="true" placeholder="Passwort bestätigen">
+      <button class="modal-save-btn" onclick="changePassword()" style="margin-top:0">Passwort speichern</button>
+    </div>
+
+    <!-- CHECKPUNKTE -->
+    <div>
+      <div class="card-label" style="margin-bottom:12px">Checkpunkte anpassen</div>
+      <div id="checkpointSettings"></div>
+      <button onclick="addCheckpoint()" style="width:100%;padding:11px;border:1.5px dashed #e2e8f0;border-radius:10px;background:transparent;font-family:var(--font);font-size:.85rem;color:#2563eb;cursor:pointer;font-weight:600;margin-bottom:12px">+ Checkpunkt hinzufügen</button>
+      <button class="modal-save-btn" onclick="saveCheckpoints()">Checkpunkte speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT FILTER MODAL -->
+<div class="modal-overlay" id="exportModal" onclick="closeExportOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📥 Excel Export</div>
+      <button class="modal-close" onclick="closeExport()">✕</button>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-label">Zeitraum</div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1">
+          <div style="font-size:.7rem;color:#64748b;margin-bottom:4px">Von</div>
+          <input type="date" id="exportFrom" style="width:100%;padding:10px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:var(--font);font-size:.85rem;background:#f0f4f8;color:#0f172a;outline:none">
+        </div>
+        <div style="flex:1">
+          <div style="font-size:.7rem;color:#64748b;margin-bottom:4px">Bis</div>
+          <input type="date" id="exportTo" style="width:100%;padding:10px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:var(--font);font-size:.85rem;background:#f0f4f8;color:#0f172a;outline:none">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-label">Typ filtern</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px" id="exportTypeFilters">
+        <button class="export-filter-btn active" data-type="all" onclick="toggleExportFilter(this)">Alle</button>
+        <button class="export-filter-btn" data-type="milk" onclick="toggleExportFilter(this)">🍼 Babymilch</button>
+        <button class="export-filter-btn" data-type="food" onclick="toggleExportFilter(this)">🍽 Essen</button>
+        <button class="export-filter-btn" data-type="stuhl" onclick="toggleExportFilter(this)">🟤 Stuhl</button>
+        <button class="export-filter-btn" data-type="vitD3" onclick="toggleExportFilter(this)">☀️ Vitamin D3</button>
+        <button class="export-filter-btn" data-type="panda" onclick="toggleExportFilter(this)">🌼 Camilia</button>
+        <button class="export-filter-btn" data-type="urin" onclick="toggleExportFilter(this)">💧 Urin</button>
+        <button class="export-filter-btn" data-type="temp" onclick="toggleExportFilter(this)">🌡 Temperatur</button>
+      </div>
+    </div>
+
+    <div style="font-size:.8rem;color:#64748b;margin-bottom:12px" id="exportCount"></div>
+    <button class="modal-save-btn" onclick="runExport()">📥 Excel herunterladen</button>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="editModalTitle">Eintrag bearbeiten</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <input type="hidden" id="editId">
+    <div class="modal-section">
+      <div class="modal-label">Datum & Zeit</div>
+      <div class="modal-date-row">
+        <input type="date" id="editDate">
+        <input type="time" id="editTime">
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Temperatur</div>
+      <div class="toggle-group" style="margin-bottom:10px">
+        <button class="toggle-btn active" onclick="setEditTempMode('none')" id="editTempNoneBtn">Nicht gemessen</button>
+        <button class="toggle-btn" onclick="setEditTempMode('measured')" id="editTempMeasuredBtn">Gemessen</button>
+      </div>
+      <div id="editTempMeasuredSection" style="display:none">
+        <div class="stepper">
+          <button class="stepper-btn" onclick="doEditStep(-1)">−</button>
+          <div class="stepper-divider"></div>
+          <div class="stepper-value" id="editTempDisplay">37.0°C</div>
+          <div class="stepper-divider"></div>
+          <button class="stepper-btn" onclick="doEditStep(1)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Mahlzeit</div>
+      <div class="toggle-group" style="margin-bottom:10px">
+        <button class="toggle-btn active" onclick="setEditMealType('milk')" id="editMealMilkBtn">Babymilch</button>
+        <button class="toggle-btn" onclick="setEditMealType('food')" id="editMealFoodBtn">Essen</button>
+        <button class="toggle-btn" onclick="setEditMealType('none')" id="editMealNoneBtn">—</button>
+      </div>
+      <div id="editMealMilkSection">
+        <div class="drum-wrap" id="editDrumWrap">
+          <div class="drum-list" id="editDrumList"></div>
+          <div class="drum-fade-top"></div>
+          <div class="drum-fade-bot"></div>
+          <div class="drum-selector"></div>
+        </div>
+      </div>
+      <div id="editMealFoodSection" style="display:none">
+        <input type="text" id="editMealFoodInput">
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Checkpunkte</div>
+      <div class="check-grid" id="editCheckGrid">
+        <div class="check-item" onclick="toggleEditCheck('vitD3')" id="editCheckVitD3">
+          <div class="check-box" id="editBoxVitD3"></div>
+          <div><div class="check-emoji">☀️</div><div class="check-label">Vitamin D3</div></div>
+        </div>
+        <div class="check-item" onclick="toggleEditCheck('panda')" id="editCheckPanda">
+          <div class="check-box" id="editBoxPanda"></div>
+          <div><div class="check-emoji">🌼</div><div class="check-label">Camilia</div></div>
+        </div>
+        <div class="check-item" onclick="toggleEditCheck('urin')" id="editCheckUrin">
+          <div class="check-box" id="editBoxUrin"></div>
+          <div><div class="check-emoji">💧</div><div class="check-label">Urin</div></div>
+        </div>
+        <div class="check-item" onclick="toggleEditCheck('stuhl')" id="editCheckStuhl">
+          <div class="check-box" id="editBoxStuhl"></div>
+          <div><div class="check-emoji">🟤</div><div class="check-label">Stuhl</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Bemerkung</div>
+      <textarea id="editNote"></textarea>
+    </div>
+    <button class="modal-save-btn" id="editSaveBtn" onclick="saveEdit()">Änderungen speichern</button>
+  </div>
+</div>
+
+<!-- ADD BABY MODAL -->
+<div class="modal-overlay" id="addBabyModal" onclick="closeAddBabyOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Baby hinzufügen</div>
+      <button class="modal-close" onclick="closeAddBaby()">✕</button>
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Name des Babys</div>
+      <input type="text" class="modal-input" id="newBabyName" placeholder="z.B. Lena, Noah...">
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Icon</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap" id="addBabyIconsWrap">
+        <span class="baby-icon-btn" data-icon="👶" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">👶</span>
+        <span class="baby-icon-btn" data-icon="🌸" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌸</span>
+        <span class="baby-icon-btn" data-icon="⭐" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">⭐</span>
+        <span class="baby-icon-btn" data-icon="🌙" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌙</span>
+        <span class="baby-icon-btn" data-icon="🦋" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🦋</span>
+        <span class="baby-icon-btn" data-icon="🌈" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🌈</span>
+        <span class="baby-icon-btn" data-icon="🐣" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🐣</span>
+        <span class="baby-icon-btn" data-icon="🧸" onclick="selectBabyIcon(this)" style="font-size:1.8rem;cursor:pointer;padding:8px;border-radius:8px;border:2px solid #e2e8f0;background:#f0f4f8">🧸</span>
+      </div>
+    </div>
+    <button class="modal-save-btn" onclick="saveBaby()">Baby speichern</button>
+  </div>
+</div>
+
+<!-- EMOJI PICKER MODAL -->
+<div class="modal-overlay" id="emojiModal" onclick="closeEmojiOutside(event)">
+  <div class="modal" style="padding-bottom:20px">
+    <div class="modal-header">
+      <div class="modal-title">Icon wählen</div>
+      <button class="modal-close" onclick="closeEmoji()">✕</button>
+    </div>
+    <div id="emojiGrid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;max-height:300px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- LEGAL MODAL -->
+<div class="modal-overlay" id="legalModal" onclick="closeLegalOutside(event)">
+  <div class="modal" style="max-height:85vh">
+    <div class="modal-header">
+      <div class="modal-title" id="legalTitle">Impressum</div>
+      <button class="modal-close" onclick="closeLegal()">✕</button>
+    </div>
+    <div id="legalContent" style="font-size:.83rem;line-height:1.8;color:var(--text2);overflow-y:auto;max-height:60vh"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+// ── LEGAL (non-module, globally accessible) ─────────────────────────────
+const LEGAL = {
+  impressum: {
+    title: 'Impressum',
+    content: `
+      <h3 style="color:var(--text);font-size:.95rem;margin-bottom:12px">Angaben gemäss Art. 12 DSG (Schweiz)</h3>
+      <p><strong>Verantwortlich für diese App:</strong></p>
+      <p style="margin-top:8px">Fabio Ferradino C/O<br>Landstrasse 99<br>5430 Wettingen<br>Schweiz</p>
+      <p style="margin-top:12px"><strong>E-Mail:</strong> <a href="mailto:babypass2026@outlook.com" style="color:#2563eb">babypass2026@outlook.com</a></p>
+      <p style="margin-top:12px"><strong>App:</strong> Babypass</p>
+      <p style="margin-top:4px"><strong>Zweck:</strong> Digitales Baby-Tagebuch zur Erfassung von Gesundheitsdaten</p>
+      <p style="margin-top:12px">Haftungsausschluss: Die in dieser App erfassten Daten ersetzen keine ärztliche Beratung.</p>
+    `
+  },
+  datenschutz: {
+    title: 'Datenschutzerklärung',
+    content: `
+      <h3 style="color:var(--text);font-size:.95rem;margin-bottom:12px">Datenschutzerklärung</h3>
+      <p><strong>Gültig ab:</strong> 2026</p>
+      <p style="margin-top:12px"><strong>1. Verantwortliche Stelle</strong></p>
+      <p>Fabio Ferradino C/O, Landstrasse 99, 5430 Wettingen, Schweiz<br>E-Mail: babypass2026@outlook.com</p>
+      <p style="margin-top:12px"><strong>2. Welche Daten wir erfassen</strong></p>
+      <p>E-Mail-Adresse (für Login), Baby-Gesundheitsdaten (Temperatur, Mahlzeiten, Checkpunkte, Bemerkungen), Datum und Uhrzeit der Einträge.</p>
+      <p style="margin-top:12px"><strong>3. Zweck der Datenverarbeitung</strong></p>
+      <p>Die Daten werden ausschliesslich zur Bereitstellung der App-Funktionen verwendet. Es erfolgt keine Weitergabe an Dritte.</p>
+      <p style="margin-top:12px"><strong>4. Datenspeicherung</strong></p>
+      <p>Alle Daten werden verschlüsselt bei Google Firebase (Firestore) gespeichert. Server-Standort: Europa.</p>
+      <p style="margin-top:12px"><strong>5. Ihre Rechte (DSGVO / nDSG)</strong></p>
+      <p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung und Datenübertragbarkeit. Kontakt: babypass2026@outlook.com</p>
+      <p style="margin-top:12px"><strong>6. Datenlöschung</strong></p>
+      <p>Sie können Ihre Daten jederzeit in der App löschen oder eine vollständige Löschung per E-Mail beantragen.</p>
+      <p style="margin-top:12px"><strong>7. Cookies</strong></p>
+      <p>Diese App verwendet keine Cookies. Firebase verwendet lokale Sitzungsdaten zur Authentifizierung.</p>
+    `
+  },
+  agb: {
+    title: 'Nutzungsbedingungen (AGB)',
+    content: `
+      <h3 style="color:var(--text);font-size:.95rem;margin-bottom:12px">Allgemeine Geschäftsbedingungen</h3>
+      <p><strong>Gültig ab:</strong> 2026</p>
+      <p style="margin-top:12px"><strong>1. Geltungsbereich</strong></p>
+      <p>Diese AGB gelten für die Nutzung der App «Babypass» von Fabio Ferradino C/O, Wettingen, Schweiz.</p>
+      <p style="margin-top:12px"><strong>2. Leistungsbeschreibung</strong></p>
+      <p>Babypass ist eine digitale Anwendung zur Erfassung von Baby-Gesundheitsdaten. Die App ersetzt keine medizinische Fachberatung.</p>
+      <p style="margin-top:12px"><strong>3. Haftungsausschluss</strong></p>
+      <p>Der Anbieter übernimmt keine Haftung für die Vollständigkeit oder Richtigkeit der erfassten Daten.</p>
+      <p style="margin-top:12px"><strong>4. Kündigung</strong></p>
+      <p>Nutzer können ihr Konto jederzeit löschen. Daten werden auf Anfrage vollständig entfernt.</p>
+      <p style="margin-top:12px"><strong>5. Anwendbares Recht</strong></p>
+      <p>Es gilt Schweizer Recht. Gerichtsstand ist Wettingen, Aargau.</p>
+    `
+  }
+};
+
+function showLegal(type) {
+  const l = LEGAL[type];
+  if(!l) return;
+  document.getElementById('legalTitle').textContent = l.title;
+  document.getElementById('legalContent').innerHTML = l.content;
+  document.getElementById('legalModal').classList.add('open');
+}
+function closeLegal() { document.getElementById('legalModal').classList.remove('open'); }
+function closeLegalOutside(ev) { if(ev.target===document.getElementById('legalModal')) closeLegal(); }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, onSnapshot, setDoc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, browserLocalPersistence, setPersistence }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyAHwARmCNsKcQZj276ogN0DEONJN1DoQoQ",
+  authDomain:"gesundheits-rapport.firebaseapp.com",
+  projectId:"gesundheits-rapport",
+  storageBucket:"gesundheits-rapport.firebasestorage.app",
+  messagingSenderId:"516805286191",
+  appId:"1:516805286191:web:3e3c8d121ea6726095e9da"
+});
+const db = getFirestore(app);
+const auth = getAuth(app);
+// Keep user logged in across sessions
+setPersistence(auth, browserLocalPersistence).catch(e => console.error('Persistence error:', e));
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let currentUser = null;
+let currentBabyId = null;
+let babies = [];
+let selectedBabyIcon = '👶';
+let lang = 'de';
+let mealType = 'milk';
+let tempMode = 'none';
+let tempVal = 370;
+let mlVal = 200;
+let pastVisible = false;
+let allEntries = [];
+const checks = {vitD3:false,panda:false,urin:false,stuhl:false};
+let editTempMode = 'none';
+let editTempVal = 370;
+let editMlVal = 200;
+let editMealType = 'milk';
+const editChecks = {vitD3:false,panda:false,urin:false,stuhl:false};
+let unsub = null;
+
+// ── AUTH STATE ─────────────────────────────────────────────────────────────
+// Hide loading screen once auth state is known
+const _hideLoading = () => {
+  const ls = document.getElementById('loadingScreen');
+  if(ls){ ls.classList.add('hidden'); setTimeout(()=>{ls.style.display='none';}, 500); }
+};
+
+// Fallback: hide loading screen after 4 seconds no matter what
+setTimeout(_hideLoading, 4000);
+
+onAuthStateChanged(auth, user => {
+  _hideLoading();
+  if(user){
+    currentUser = user;
+    document.getElementById('welcomeUserEmail').textContent = user.email;
+    showScreen('welcomeScreen');
+    loadBabies().then(()=>checkPartnerAccess()); loadCheckpointSettings();
+  } else {
+    currentUser = null;
+    showScreen('authScreen');
+  }
+});
+
+// ── SCREENS ────────────────────────────────────────────────────────────────
+window.showScreen = id => {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+};
+
+// ── AUTH ───────────────────────────────────────────────────────────────────
+let authMode = 'login';
+window.setAuthTab = mode => {
+  authMode = mode;
+  document.getElementById('authTabLogin').classList.toggle('active', mode==='login');
+  document.getElementById('authTabRegister').classList.toggle('active', mode==='register');
+  document.getElementById('authBtn').textContent = mode==='login' ? 'Anmelden' : 'Registrieren';
+  document.getElementById('authError').classList.remove('show');
+  document.getElementById('forgotPwWrap').style.display = mode==='login' ? 'block' : 'none';
+};
+
+window.doForgotPassword = async () => {
+  const email = document.getElementById('authEmail').value.trim();
+  if(!email){
+    document.getElementById('authError').textContent='Bitte zuerst deine E-Mail eingeben.';
+    document.getElementById('authError').classList.add('show');
+    return;
+  }
+  try {
+    const {sendPasswordResetEmail} = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+    await sendPasswordResetEmail(auth, email);
+    document.getElementById('authError').style.background='#dcfce7';
+    document.getElementById('authError').style.color='#16a34a';
+    document.getElementById('authError').textContent='✓ Reset-E-Mail wurde gesendet! Bitte prüfe dein Postfach.';
+    document.getElementById('authError').classList.add('show');
+  } catch(e){
+    const msgs = {'auth/user-not-found':'Kein Konto mit dieser E-Mail.','auth/invalid-email':'Ungültige E-Mail-Adresse.'};
+    document.getElementById('authError').style.background='#fee2e2';
+    document.getElementById('authError').style.color='var(--red)';
+    document.getElementById('authError').textContent = msgs[e.code]||'Fehler: '+e.message;
+    document.getElementById('authError').classList.add('show');
+  }
+};
+
+window.doAuth = async () => {
+  const email = document.getElementById('authEmail').value.trim();
+  const pw = document.getElementById('authPassword').value;
+  const btn = document.getElementById('authBtn');
+  const errEl = document.getElementById('authError');
+  if(!email||!pw){errEl.textContent='Bitte alle Felder ausfüllen.';errEl.classList.add('show');return;}
+  btn.disabled = true;
+  errEl.classList.remove('show');
+  try {
+    if(authMode==='login'){
+      await signInWithEmailAndPassword(auth, email, pw);
+    } else {
+      await createUserWithEmailAndPassword(auth, email, pw);
+    }
+  } catch(e) {
+    const msgs = {
+      'auth/user-not-found':'Kein Konto mit dieser E-Mail gefunden.',
+      'auth/wrong-password':'Falsches Passwort.',
+      'auth/email-already-in-use':'Diese E-Mail ist bereits registriert.',
+      'auth/weak-password':'Passwort muss mindestens 6 Zeichen haben.',
+      'auth/invalid-email':'Ungültige E-Mail-Adresse.',
+      'auth/invalid-credential':'E-Mail oder Passwort falsch.'
+    };
+    errEl.textContent = msgs[e.code] || 'Fehler: '+e.message;
+    errEl.classList.add('show');
+  }
+  btn.disabled = false;
+};
+
+window.doLogout = async () => {
+  if(unsub){unsub();unsub=null;}
+  await signOut(auth);
+};
+
+// ── BABIES ─────────────────────────────────────────────────────────────────
+async function loadBabies(){
+  if(!currentUser) return;
+  const snap = await getDocs(collection(db,`users/${currentUser.uid}/babies`));
+  babies = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderBabyGrid();
+}
+
+function renderBabyGrid(){
+  const grid = document.getElementById('babyGrid');
+  grid.innerHTML = babies.map(b=>{
+    const selected = currentBabyId===b.id ? ' selected' : '';
+    const sub = b.isShared ? '👥 Geteilt' : 'Protokoll';
+    return '<div class="baby-card' + selected + '" onclick="selectBaby(\'' + b.id + '\')" style="position:relative">' +
+      '<div class="baby-card-icon">' + (b.icon||'👶') + '</div>' +
+      '<div class="baby-card-name">' + b.name + '</div>' +
+      '<div class="baby-card-sub">' + sub + '</div>' +
+      '</div>';
+  }).join('');
+  document.getElementById('openBabyBtn').classList.toggle('show', !!currentBabyId);
+}
+
+window.selectBaby = id => {
+  currentBabyId = id;
+  renderBabyGrid();
+};
+
+window.openBabyApp = () => {
+  const baby = babies.find(b=>b.id===currentBabyId);
+  if(!baby) return;
+  document.getElementById('appBabyName').textContent = baby.icon+' '+baby.name;
+  if(unsub){unsub();unsub=null;}
+  allEntries=[];
+  showScreen('appScreen');
+  initDateTime();
+  updateTempDisplay();
+  buildDrum('drumList', mlVal);
+  initDrum('drumWrap','drumList');
+  buildDrum('editDrumList', editMlVal);
+  initDrum('editDrumWrap','editDrumList');
+  // Small delay to ensure Firestore connection is ready
+  loadBabySettings();
+  flushOfflineQueue();
+  setTimeout(()=>subscribeHistory(), 300);
+};
+
+window.openAddBaby = () => {
+  document.getElementById('newBabyName').value='';
+  selectedBabyIcon='👶';
+  document.querySelectorAll('#addBabyIconsWrap .baby-icon-btn').forEach(b=>{
+    b.style.borderColor=b.dataset.icon==='👶'?'#2563eb':'#e2e8f0';
+    b.style.background=b.dataset.icon==='👶'?'#dbeafe':'#f0f4f8';
+  });
+  document.getElementById('addBabyModal').classList.add('open');
+};
+window.closeAddBaby = () => document.getElementById('addBabyModal').classList.remove('open');
+window.closeAddBabyOutside = ev => {if(ev.target===document.getElementById('addBabyModal'))closeAddBaby();};
+
+window.selectBabyIcon = el => {
+  selectedBabyIcon = el.dataset.icon;
+  document.querySelectorAll('.baby-icon-btn').forEach(b=>{
+    b.style.borderColor=b===el?'var(--accent)':'var(--border)';
+    b.style.background=b===el?'var(--accent-light)':'var(--bg)';
+  });
+};
+
+window.saveBaby = async () => {
+  const name = document.getElementById('newBabyName').value.trim();
+  if(!name){showToast('Bitte einen Namen eingeben',true);return;}
+  try {
+    const ref = await addDoc(collection(db,`users/${currentUser.uid}/babies`),{name, icon:selectedBabyIcon, createdAt:new Date().toISOString()});
+    babies.push({id:ref.id, name, icon:selectedBabyIcon});
+    renderBabyGrid();
+    closeAddBaby();
+    showToast('✓ Baby gespeichert');
+  } catch(e){showToast('⚠ Fehler',true);}
+};
+
+// ── LANG ───────────────────────────────────────────────────────────────────
+const T = {
+  de:{tabForm:'Erfassen',tabHistory:'Verlauf',labelDateTime:'Datum & Zeit',
+    labelTemp:'Temperatur',labelMeal:'Mahlzeit',labelCheckpoints:'Checkpunkte',
+    labelNote:'Bemerkung',submitBtn:'Rapport speichern',historyTitle:'Verlauf',
+    tempNone:'Nicht gemessen',tempMeasured:'Gemessen',
+    mealMilk:'Babymilch',mealFood:'Essen',mealNone:'— Keine',
+    tempLow:'Unterkühlt',tempNormal:'Normal',tempHigh:'Erhöht',tempFever:'Fieber',
+    lblVitD3:'Vitamin D3',lblPanda:'Camilia',lblUrin:'Urin',lblStuhl:'Stuhl',
+    stuhlCounterLabel:'Stuhl heute',milkTotalLabel:'Milch heute',
+    notePlaceholder:'Freitext...',foodPlaceholder:'z.B. Suppe, Brei...',
+    saved:'✓ Gespeichert',updated:'✓ Aktualisiert',syncError:'⚠ Verbindungsfehler',
+    confirmClear:'Alle Einträge löschen?',confirmDelete:'Eintrag löschen?',
+    historyEmpty:'Noch keine Einträge heute.',pastEmpty:'Keine früheren Einträge.',
+    todayHeader:'Heute',pastShow:'Frühere Einträge anzeigen',pastHide:'Frühere Einträge ausblenden',
+    forecastLabel:'Nächste Mahlzeit (ca.)'},
+  it:{tabForm:'Inserisci',tabHistory:'Storico',labelDateTime:'Data & Ora',
+    labelTemp:'Temperatura',labelMeal:'Pasto',labelCheckpoints:'Controlli',
+    labelNote:'Osservazione',submitBtn:'Salva rapporto',historyTitle:'Storico',
+    tempNone:'Non misurata',tempMeasured:'Misurata',
+    mealMilk:'Latte',mealFood:'Cibo',mealNone:'— Nessuno',
+    tempLow:'Ipotermia',tempNormal:'Normale',tempHigh:'Elevata',tempFever:'Febbre',
+    lblVitD3:'Vitamina D3',lblPanda:'Camilia',lblUrin:'Urina',lblStuhl:'Feci',
+    stuhlCounterLabel:'Feci oggi',milkTotalLabel:'Latte oggi',
+    notePlaceholder:'Testo libero...',foodPlaceholder:'es. zuppa, yogurt...',
+    saved:'✓ Salvato',updated:'✓ Aggiornato',syncError:'⚠ Errore connessione',
+    confirmClear:'Eliminare tutto?',confirmDelete:'Eliminare questo record?',
+    historyEmpty:'Nessun dato oggi.',pastEmpty:'Nessun dato precedente.',
+    todayHeader:'Oggi',pastShow:'Mostra voci precedenti',pastHide:'Nascondi voci precedenti',
+    forecastLabel:'Prossimo pasto (circa)'}
+};
+
+window.setLang = l => {
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent===l.toUpperCase()));
+  const t=T[l];
+  [['tabForm',t.tabForm],['tabHistory',t.tabHistory],['labelDateTime',t.labelDateTime],
+   ['labelTemp',t.labelTemp],['labelMeal',t.labelMeal],['labelCheckpoints',t.labelCheckpoints],
+   ['labelNote',t.labelNote],['submitBtn',t.submitBtn],['historyTitle',t.historyTitle],
+   ['tempNoneBtn',t.tempNone],['tempMeasuredBtn',t.tempMeasured],
+   ['mealMilkBtn',t.mealMilk],['mealFoodBtn',t.mealFood],['mealNoneBtn',t.mealNone],
+   ['lblVitD3',t.lblVitD3],['lblPanda',t.lblPanda],['lblUrin',t.lblUrin],['lblStuhl',t.lblStuhl],
+   ['stuhlCounterLabel',t.stuhlCounterLabel],['milkTotalLabel',t.milkTotalLabel],
+   ['todayHeader',t.todayHeader],['forecastLabel',t.forecastLabel]
+  ].forEach(([id,txt])=>{const el=document.getElementById(id);if(el)el.textContent=txt;});
+  document.getElementById('noteInput').placeholder=t.notePlaceholder;
+  document.getElementById('mealFoodInput').placeholder=t.foodPlaceholder;
+  document.getElementById('pastToggleLabel').textContent=pastVisible?t.pastHide:t.pastShow;
+  updateTempDisplay();
+  renderHistory(allEntries);
+};
+
+// ── TABS ───────────────────────────────────────────────────────────────────
+window.switchTab = tab => {
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(tab+'Tab').classList.add('active');
+  document.getElementById(tab==='form'?'tabForm':'tabHistory').classList.add('active');
+};
+
+// ── TEMP ───────────────────────────────────────────────────────────────────
+window.setTempMode = mode => {
+  tempMode=mode;
+  document.getElementById('tempNoneBtn').classList.toggle('active',mode==='none');
+  document.getElementById('tempMeasuredBtn').classList.toggle('active',mode==='measured');
+  document.getElementById('tempMeasuredSection').style.display=mode==='measured'?'':'none';
+};
+function updateTempDisplay(){
+  document.getElementById('tempDisplay').textContent=(tempVal/10).toFixed(1)+'°C';
+  const st=document.getElementById('tempStatus');
+  let cls='temp-normal',txt=T[lang].tempNormal;
+  if(tempVal<360){cls='temp-low';txt=T[lang].tempLow;}
+  else if(tempVal>=375&&tempVal<383){cls='temp-high';txt=T[lang].tempHigh;}
+  else if(tempVal>=383){cls='temp-fever';txt=T[lang].tempFever;}
+  st.className='temp-status '+cls; st.textContent=txt;
+}
+window.doStep = (type,dir) => {
+  if(type==='temp'){tempVal=Math.min(420,Math.max(350,tempVal+dir));updateTempDisplay();}
+};
+window.setEditTempMode = mode => {
+  editTempMode=mode;
+  document.getElementById('editTempNoneBtn').classList.toggle('active',mode==='none');
+  document.getElementById('editTempMeasuredBtn').classList.toggle('active',mode==='measured');
+  document.getElementById('editTempMeasuredSection').style.display=mode==='measured'?'':'none';
+};
+window.doEditStep = dir => {
+  editTempVal=Math.min(420,Math.max(350,editTempVal+dir));
+  document.getElementById('editTempDisplay').textContent=(editTempVal/10).toFixed(1)+'°C';
+};
+
+// ── DRUM PICKER ────────────────────────────────────────────────────────────
+const ML_STEPS=[];for(let v=10;v<=300;v+=5)ML_STEPS.push(v);
+const DRUM_H=44, DRUM_OFFSET=88;
+
+window.buildDrum = (listId,val) => {
+  const list=document.getElementById(listId);
+  if(!list)return;
+  list.innerHTML=ML_STEPS.map((v,i)=>`<div class="drum-item${v===val?' active':''}" data-idx="${i}">${v} ml</div>`).join('');
+  snapDrum(listId, ML_STEPS.indexOf(val<10?10:val>300?300:val), false);
+};
+
+function snapDrum(listId, idx, animate){
+  const list=document.getElementById(listId);
+  if(!list)return;
+  idx=Math.max(0,Math.min(ML_STEPS.length-1,idx));
+  list.style.transition=animate?'transform .18s ease-out':'none';
+  list.style.transform='translateY('+(DRUM_OFFSET-idx*DRUM_H)+'px)';
+  list.querySelectorAll('.drum-item').forEach((el,i)=>el.classList.toggle('active',i===idx));
+  if(listId==='drumList') mlVal=ML_STEPS[idx];
+  else editMlVal=ML_STEPS[idx];
+}
+
+function currentIdx(listId){
+  const list=document.getElementById(listId);
+  const m=list&&list.style.transform.match(/translateY\((.+)px\)/);
+  const ty=m?parseFloat(m[1]):DRUM_OFFSET;
+  return Math.round((DRUM_OFFSET-ty)/DRUM_H);
+}
+
+window.initDrum = (wrapId,listId) => {
+  const wrap=document.getElementById(wrapId);
+  if(!wrap||wrap._drumInit)return;
+  wrap._drumInit=true;
+  let sy=0, baseTY=DRUM_OFFSET, dragging=false;
+  const gy=e=>e.touches?e.touches[0].clientY:e.clientY;
+  const getTY=()=>{
+    const list=document.getElementById(listId);
+    const m=list&&list.style.transform.match(/translateY\((.+)px\)/);
+    return m?parseFloat(m[1]):DRUM_OFFSET;
+  };
+  const clamp=ty=>Math.max(DRUM_OFFSET-(ML_STEPS.length-1)*DRUM_H,Math.min(DRUM_OFFSET,ty));
+
+  function onStart(e){
+    dragging=true; sy=gy(e); baseTY=getTY();
+    document.getElementById(listId).style.transition='none';
+    e.preventDefault();
+  }
+  function onMove(e){
+    if(!dragging)return;
+    const list=document.getElementById(listId);
+    list.style.transform='translateY('+clamp(baseTY+gy(e)-sy)+'px)';
+    e.preventDefault();
+  }
+  function onEnd(){
+    if(!dragging)return;
+    dragging=false;
+    snapDrum(listId,currentIdx(listId),true);
+  }
+  wrap.addEventListener('touchstart',onStart,{passive:false});
+  wrap.addEventListener('touchmove',onMove,{passive:false});
+  wrap.addEventListener('touchend',onEnd);
+  wrap.addEventListener('mousedown',onStart);
+  document.addEventListener('mousemove',e=>{if(dragging)onMove(e);});
+  document.addEventListener('mouseup',()=>{if(dragging)onEnd();});
+  wrap.addEventListener('click',e=>{
+    const item=e.target.closest('.drum-item');
+    if(item)snapDrum(listId,parseInt(item.dataset.idx),true);
+  });
+};
+
+// ── MEAL ───────────────────────────────────────────────────────────────────
+window.setMealType = type => {
+  mealType=type;
+  ['mealMilkBtn','mealFoodBtn','mealNoneBtn'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById({milk:'mealMilkBtn',food:'mealFoodBtn',none:'mealNoneBtn'}[type]).classList.add('active');
+  document.getElementById('mealMilkSection').style.display=type==='milk'?'':'none';
+  document.getElementById('mealFoodSection').style.display=type==='food'?'':'none';
+};
+window.setEditMealType = type => {
+  editMealType=type;
+  ['editMealMilkBtn','editMealFoodBtn','editMealNoneBtn'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById({milk:'editMealMilkBtn',food:'editMealFoodBtn',none:'editMealNoneBtn'}[type]).classList.add('active');
+  document.getElementById('editMealMilkSection').style.display=type==='milk'?'':'none';
+  document.getElementById('editMealFoodSection').style.display=type==='food'?'':'none';
+};
+
+// ── CHECKBOXES ─────────────────────────────────────────────────────────────
+window.toggleCheck = id => {
+  checks[id]=!checks[id];
+  const fixed=['vitD3','panda','urin','stuhl'];
+  if(fixed.includes(id)){
+    const k=id[0].toUpperCase()+id.slice(1);
+    document.getElementById('check'+k).classList.toggle('checked',checks[id]);
+    document.getElementById('box'+k).textContent=checks[id]?'✓':'';
+  } else {
+    const safe=id.replace(/[^a-zA-Z0-9]/g,'_');
+    document.getElementById('checkDyn_'+safe).classList.toggle('checked',checks[id]);
+    document.getElementById('boxDyn_'+safe).textContent=checks[id]?'✓':'';
+  }
+};
+window.toggleEditCheck = id => {
+  editChecks[id]=!editChecks[id];
+  const fixed=['vitD3','panda','urin','stuhl'];
+  if(fixed.includes(id)){
+    const k=id[0].toUpperCase()+id.slice(1);
+    document.getElementById('editCheck'+k).classList.toggle('checked',editChecks[id]);
+    document.getElementById('editBox'+k).textContent=editChecks[id]?'✓':'';
+  } else {
+    const safe=id.replace(/[^a-zA-Z0-9]/g,'_');
+    document.getElementById('editCheckDyn_'+safe).classList.toggle('checked',editChecks[id]);
+    document.getElementById('editBoxDyn_'+safe).textContent=editChecks[id]?'✓':'';
+  }
+};
+
+// ── SAVE ───────────────────────────────────────────────────────────────────
+function rapportCol(){
+  const baby = babies.find(b=>b.id===currentBabyId);
+  const ownerUid = (baby&&baby.ownerUid) ? baby.ownerUid : currentUser.uid;
+  return collection(db,`users/${ownerUid}/babies/${currentBabyId}/rapporte`);
+}
+
+window.saveEntry = async () => {
+  if(!currentUser){showToast('⚠ Nicht eingeloggt – bitte neu anmelden',true);return;}
+  if(!currentBabyId){showToast('⚠ Kein Baby ausgewählt – bitte zurück und Baby wählen',true);return;}
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; setSyncStatus('syncing');
+  const meal=mealType==='milk'?mlVal+' ml':mealType==='food'?(document.getElementById('mealFoodInput').value||T[lang].mealFood):'—';
+  try {
+    const _entryData = {
+      date:document.getElementById('inputDate').value,
+      time:document.getElementById('inputTime').value,
+      tempMode, temp:tempMode==='measured'?(tempVal/10).toFixed(1):null,
+      mealType, meal,
+      ...Object.fromEntries(Object.keys(checks).map(k=>[k,checks[k]])),
+      note:document.getElementById('noteInput').value,
+      lang, createdAt:new Date().toISOString()
+    };
+    if(!isOnline){ queueOfflineEntry(_entryData); setSyncStatus('error'); resetForm(); btn.disabled=false; return; }
+    await addDoc(rapportCol(), _entryData);
+    setSyncStatus('ok'); showToast(T[lang].saved); haptic('success'); resetForm();
+    // Delete pending entry if this was a completion
+    if(window._pendingId){
+      try{
+        const _pb=babies.find(b=>b.id===currentBabyId);
+        const _po=(_pb&&_pb.ownerUid)?_pb.ownerUid:currentUser.uid;
+        await deleteDoc(doc(db,`users/${_po}/babies/${currentBabyId}/rapporte`,window._pendingId));
+      }catch(e){console.error(e);}
+      window._pendingId=null;
+    }
+  } catch(e){console.error(e);setSyncStatus('error');showToast('⚠ '+T[lang].syncError,true);}
+  btn.disabled=false;
+};
+
+// ── EDIT MODAL ─────────────────────────────────────────────────────────────
+window.openEdit = id => {
+  const e=allEntries.find(x=>x.id===id); if(!e)return;
+  document.getElementById('editId').value=id;
+  document.getElementById('editDate').value=e.date;
+  document.getElementById('editTime').value=e.time;
+  editTempMode=e.tempMode||'none'; editTempVal=e.temp?Math.round(parseFloat(e.temp)*10):370;
+  setEditTempMode(editTempMode);
+  document.getElementById('editTempDisplay').textContent=(editTempVal/10).toFixed(1)+'°C';
+  editMealType=e.mealType||'none';
+  editMlVal=e.mealType==='milk'?parseInt(e.meal)||200:200;
+  setEditMealType(editMealType);
+  buildDrum('editDrumList',editMlVal);
+  // Re-init drum in edit modal (needed after modal was closed)
+  const editWrap=document.getElementById('editDrumWrap');
+  if(editWrap) editWrap._drumInit=false;
+  initDrum('editDrumWrap','editDrumList');
+  document.getElementById('editMealFoodInput').value=e.mealType==='food'?e.meal:'';
+  ['vitD3','panda','urin','stuhl'].forEach(k=>{
+    editChecks[k]=!!e[k];
+    const K=k[0].toUpperCase()+k.slice(1);
+    document.getElementById('editCheck'+K).classList.toggle('checked',editChecks[k]);
+    document.getElementById('editBox'+K).textContent=editChecks[k]?'✓':'';
+  });
+  document.getElementById('editNote').value=e.note||'';
+  document.getElementById('editModal').classList.add('open');
+};
+window.closeModal=()=>document.getElementById('editModal').classList.remove('open');
+window.closeModalOutside=ev=>{if(ev.target===document.getElementById('editModal'))closeModal();};
+
+window.saveEdit = async () => {
+  const id=document.getElementById('editId').value;
+  const btn=document.getElementById('editSaveBtn'); btn.disabled=true;
+  const meal=editMealType==='milk'?editMlVal+' ml':editMealType==='food'?(document.getElementById('editMealFoodInput').value||''):'—';
+  try {
+    const _baby=babies.find(b=>b.id===currentBabyId);
+    const _owner=(_baby&&_baby.ownerUid)?_baby.ownerUid:currentUser.uid;
+    await updateDoc(doc(db,`users/${_owner}/babies/${currentBabyId}/rapporte`,id),{
+      date:document.getElementById('editDate').value,
+      time:document.getElementById('editTime').value,
+      tempMode:editTempMode, temp:editTempMode==='measured'?(editTempVal/10).toFixed(1):null,
+      mealType:editMealType, meal,
+      ...Object.fromEntries(Object.keys(editChecks).map(k=>[k,editChecks[k]])),
+      note:document.getElementById('editNote').value
+    });
+    showToast(T[lang].updated); haptic('success'); closeModal();
+  } catch(e){console.error(e);showToast('⚠ '+T[lang].syncError,true);}
+  btn.disabled=false;
+};
+
+// ── REALTIME ───────────────────────────────────────────────────────────────
+function subscribeHistory(){
+  if(unsub){unsub();unsub=null;}
+  if(!currentUser||!currentBabyId){return;}
+  setSyncStatus('syncing');
+  try {
+    unsub=onSnapshot(query(rapportCol(),orderBy('createdAt','desc')),snap=>{
+      allEntries=snap.docs.map(d=>({id:d.id,...d.data()}));
+      updateHeaderStats(allEntries); renderHistory(allEntries); setSyncStatus('ok');
+    },err=>{
+      console.error('Firestore error:',err.code, err.message);
+      setSyncStatus('error');
+      if(err.code==='permission-denied'){
+        showToast('⚠️ Sitzung abgelaufen – bitte neu einloggen', true);
+        setTimeout(()=>doLogout(), 3000);
+      } else {
+        setTimeout(()=>subscribeHistory(), 3000);
+      }
+    });
+  } catch(e) {
+    console.error(e); setSyncStatus('error');
+    setTimeout(()=>subscribeHistory(), 2000);
+  }
+}
+
+// ── HEADER STATS ───────────────────────────────────────────────────────────
+function updateHeaderStats(entries){
+  const today=localDateStr();
+  const te=entries.filter(e=>e.date===today);
+  document.getElementById('stuhlCounterValue').textContent=te.filter(e=>e.stuhl).length;
+  const milkTotal=te.filter(e=>e.mealType==='milk').reduce((s,e)=>s+(parseInt(e.meal)||0),0);
+  document.getElementById('milkTotalValue').textContent=milkTotal+' ml';
+  const mealE=te.filter(e=>e.mealType==='milk'||e.mealType==='food').sort((a,b)=>a.time<b.time?1:-1);
+  const fb=document.getElementById('forecastBox');
+  // Update pending banner
+  const pendingCount=entries.filter(e=>e.pending===true).length;
+  const banner=document.getElementById('pendingBanner');
+  if(banner){
+    if(pendingCount>0){
+      banner.style.display='flex';
+      document.getElementById('pendingBannerText').textContent=pendingCount+' Eintrag'+(pendingCount>1?' warten':' wartet')+' auf Details';
+    } else {
+      banner.style.display='none';
+    }
+  }
+  if(mealE.length){
+    const last=mealE[0];
+    const [hh,mm]=last.time.split(':').map(Number);
+    const next=new Date(); next.setHours(hh,mm,0,0); next.setTime(next.getTime()+(babyForecastHours||3)*60*60*1000);
+    document.getElementById('forecastValue').textContent=String(next.getHours()).padStart(2,'0')+':'+String(next.getMinutes()).padStart(2,'0')+' Uhr';
+    document.getElementById('forecastSub').textContent='Letzte: '+last.time+' Uhr · '+(last.meal||'—');
+    fb.style.display='flex';
+  } else {fb.style.display='none';}
+}
+
+// ── RENDER HISTORY ─────────────────────────────────────────────────────────
+function renderHistory(entries){
+  const today=localDateStr();
+  // Pending entries (from SOMRIG button)
+  const pending=entries.filter(e=>e.pending===true);
+  const pendingSection=document.getElementById('pendingSection');
+  const pendingList=document.getElementById('pendingList');
+  if(pending.length&&pendingList){
+    pendingSection.style.display='block';
+    pendingList.innerHTML=pending.map(e=>renderPendingEntry(e)).join('');
+  } else if(pendingSection){
+    pendingSection.style.display='none';
+  }
+  const te=entries.filter(e=>e.date===today&&!e.pending).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  // Day summary
+  const sumEl=document.getElementById('todaySummary');
+  if(sumEl&&te.length){
+    const milkCount=te.filter(e=>e.mealType==='milk').length;
+    const milkTotal=te.filter(e=>e.mealType==='milk').reduce((s,e)=>s+(parseInt(e.meal)||0),0);
+    const foodCount=te.filter(e=>e.mealType==='food').length;
+    const stuhlCount=te.filter(e=>e.stuhl).length;
+    const parts=[];
+    if(milkCount) parts.push('🍼 '+milkCount+'× · '+milkTotal+' ml total');
+    if(foodCount) parts.push('🍽 '+foodCount+'× Essen');
+    if(stuhlCount) parts.push('🟤 '+stuhlCount+'× Stuhl');
+    parts.push('📋 '+te.length+' Einträge');
+    sumEl.style.display=parts.length?'flex':'none';
+    sumEl.innerHTML=parts.map(p=>'<span style="background:var(--surface2);padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600">'+p+'</span>').join('');
+  } else if(sumEl){sumEl.style.display='none';}
+  const pe=entries.filter(e=>e.date<today&&!e.pending).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const fe=entries.filter(e=>e.date>today&&!e.pending).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+
+  // Today
+  document.getElementById('todayList').innerHTML=te.length?te.map(e=>renderEntry(e,true)).join(''):`<div class="history-empty">${T[lang].historyEmpty}</div>`;
+
+  // Future entries
+  const futureSection=document.getElementById('futureSection');
+  const futureEntries=document.getElementById('futureEntries');
+  if(fe.length){
+    futureSection.style.display='block';
+    futureEntries.innerHTML=fe.map(e=>renderEntry(e,false)).join('');
+  } else {
+    futureSection.style.display='none';
+  }
+
+  // Past entries
+  document.getElementById('pastEntries').innerHTML=pe.length?pe.map(e=>renderEntry(e,false)).join(''):`<div class="history-empty">${T[lang].pastEmpty}</div>`;
+  document.getElementById('pastToggleLabel').textContent=pastVisible?T[lang].pastHide:T[lang].pastShow;
+}
+
+
+function renderPendingEntry(e){
+  const id = e.id;
+  const date = e.date;
+  const time = e.time;
+  return '<div class="history-entry pending-entry">' +
+    '<div class="entry-header">' +
+      '<div>' +
+        '<div class="entry-datetime">📅 ' + formatDate(date, lang) + '</div>' +
+        '<div class="entry-time">🕐 ' + time + ' · Via SOMRIG</div>' +
+      '</div>' +
+      '<div class="entry-actions">' +
+        '<button class="delete-btn" onclick="deleteEntry(\'' + id + '\')">✕</button>' +
+      '</div>' +
+    '</div>' +
+    '<div style="font-size:.82rem;color:#ea580c;font-weight:600">⏳ Details noch nicht eingetragen</div>' +
+    '<button class="complete-pending-btn" onclick="completePending(\'' + id + '\',\'' + date + '\',\'' + time + '\')">✏️ Jetzt nachtragen</button>' +
+  '</div>';
+}
+
+window.completePending = (id, date, time) => {
+  // Switch to form tab and pre-fill date/time
+  switchTab('form');
+  document.getElementById('inputDate').value = date;
+  document.getElementById('inputTime').value = time;
+  // Store pending id to delete after save
+  window._pendingId = id;
+  showToast('Datum & Zeit vorausgefüllt – Details eintragen und speichern');
+};
+
+function renderEntry(e,isToday){
+  const l=T[e.lang]||T.de;
+  const tv=parseFloat(e.temp);
+  const tChip=e.tempMode==='none'||!e.temp?`<span class="chip">🌡 —</span>`:`<span class="chip ${tv<36?'blue':tv>=38.3?'red':tv>=37.5?'orange':'green'}">🌡 ${e.temp}°C</span>`;
+  const mChip=e.meal&&e.meal!=='—'?`<span class="chip blue">🍼 ${e.meal}</span>`:'';
+  const cpChips = Object.entries(checkpointSettings)
+    .sort((a,b)=>(a[1].order||0)-(b[1].order||0))
+    .map(([k,s])=>e[k]?`<span class="chip green">${s.icon} ${s.label}</span>`:'')
+    .filter(Boolean).join('');
+  const chips=[tChip,mChip,cpChips].filter(Boolean).join('');
+  return `<div class="history-entry${isToday?' today-entry':''}">
+    <div class="entry-header">
+      <div><div class="entry-datetime">📅 ${e.date}</div><div class="entry-time">🕐 ${e.time}</div></div>
+      <div class="entry-actions">
+        <button class="edit-btn" onclick="openEdit('${e.id}')">✏️</button>
+        <button class="delete-btn" onclick="deleteEntry('${e.id}')">✕</button>
+      </div>
+    </div>
+    <div class="entry-chips">${chips}</div>
+    ${e.note?`<div class="entry-note">💬 ${e.note}</div>`:''}
+  </div>`;
+}
+
+// ── PAST TOGGLE ────────────────────────────────────────────────────────────
+window.togglePast=()=>{
+  pastVisible=!pastVisible;
+  document.getElementById('pastEntries').classList.toggle('visible',pastVisible);
+  document.getElementById('pastToggleBtn').textContent=(pastVisible?'▲ ':'▼ ')+(pastVisible?T[lang].pastHide:T[lang].pastShow);
+};
+
+// ── DELETE / CLEAR ─────────────────────────────────────────────────────────
+window.deleteEntry=async id=>{
+  if(!confirm(T[lang].confirmDelete))return;
+  try{const _b=babies.find(b=>b.id===currentBabyId);const _o=(_b&&_b.ownerUid)?_b.ownerUid:currentUser.uid;await deleteDoc(doc(db,`users/${_o}/babies/${currentBabyId}/rapporte`,id));haptic('light');}
+  catch(e){showToast('⚠ Fehler',true);}
+};
+window.clearAll=async()=>{
+  if(!confirm(T[lang].confirmClear))return;
+  try{const s=await getDocs(rapportCol());await Promise.all(s.docs.map(d=>deleteDoc(d.ref)));}
+  catch(e){showToast('⚠ Fehler',true);}
+};
+
+// ── XLSX EXPORT ────────────────────────────────────────────────────────────
+window.exportXLSX=()=>{
+  // Set default date range (last 30 days to today)
+  const today=localDateStr();
+  const from=new Date(); from.setDate(from.getDate()-30);
+  document.getElementById('exportFrom').value=localDateStr(from);
+  document.getElementById('exportTo').value=today;
+  updateExportCount();
+  document.getElementById('exportModal').classList.add('open');
+};
+window.closeExport=()=>document.getElementById('exportModal').classList.remove('open');
+window.closeExportOutside=ev=>{if(ev.target===document.getElementById('exportModal'))closeExport();};
+let activeExportTypes=['all'];
+window.toggleExportFilter=btn=>{
+  const type=btn.dataset.type;
+  if(type==='all'){
+    // Toggle alle an/aus
+    const allActive=btn.classList.contains('active');
+    if(allActive){
+      // Deselect all -> select nothing (show all)
+      activeExportTypes=[];
+      document.querySelectorAll('.export-filter-btn').forEach(b=>b.classList.remove('active'));
+    } else {
+      activeExportTypes=['all'];
+      document.querySelectorAll('.export-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.type==='all'));
+    }
+  } else {
+    // Toggle specific type
+    btn.classList.toggle('active');
+    // Remove 'all' from active if a specific type is selected
+    document.querySelector('[data-type="all"]').classList.remove('active');
+    activeExportTypes=Array.from(document.querySelectorAll('.export-filter-btn.active')).map(b=>b.dataset.type).filter(t=>t!=='all');
+    // If nothing selected, fall back to all
+    if(!activeExportTypes.length){
+      activeExportTypes=[];
+    }
+  }
+  updateExportCount();
+};
+function updateExportCount(){
+  const filtered=getFilteredEntries();
+  document.getElementById('exportCount').textContent=filtered.length+' Einträge werden exportiert';
+}
+function getFilteredEntries(){
+  const from=document.getElementById('exportFrom').value;
+  const to=document.getElementById('exportTo').value;
+  return allEntries.filter(e=>{
+    if(e.pending) return false; // exclude pending entries
+    const inRange=(!from||e.date>=from)&&(!to||e.date<=to);
+    if(!inRange)return false;
+    // No filter active or 'all' selected = show everything
+    if(!activeExportTypes.length||activeExportTypes.includes('all'))return true;
+    // Must match AT LEAST ONE active filter
+    return activeExportTypes.some(t=>{
+      if(t==='milk')return e.mealType==='milk';
+      if(t==='food')return e.mealType==='food';
+      if(t==='stuhl')return e.stuhl;
+      if(t==='vitD3')return e.vitD3;
+      if(t==='panda')return e.panda;
+      if(t==='urin')return e.urin;
+      if(t==='temp')return e.tempMode==='measured'&&e.temp;
+      return false;
+    });
+  });
+}
+document.addEventListener('change', e => {
+  if(e.target.id==='exportFrom'||e.target.id==='exportTo') updateExportCount();
+});
+window.runExport=()=>{
+  const filtered=getFilteredEntries();
+  if(!filtered.length){showToast('Keine Daten für diesen Filter',true);return;}
+  const t=T[lang];
+  const ws=XLSX.utils.json_to_sheet(filtered.map(e=>({
+    'Datum':formatDateShort(e.date,lang),'Zeit':e.time,
+    'Temperatur':e.tempMode==='none'?'—':(e.temp+'°C'),
+    'Mahlzeit':e.meal||'—',
+    [t.lblVitD3]:e.vitD3?'✓':'',
+    [t.lblPanda]:e.panda?'✓':'',
+    [t.lblUrin]:e.urin?'✓':'',
+    [t.lblStuhl]:e.stuhl?'✓':'',
+    'Bemerkung':e.note||''
+  })));
+  ws['!cols']=[14,8,12,16,10,10,10,10,30].map(w=>({wch:w}));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Rapport');
+  const from=document.getElementById('exportFrom').value;
+  const to=document.getElementById('exportTo').value;
+  XLSX.writeFile(wb,'babypass_'+from+'_'+to+'.xlsx');
+  closeExport();
+  showToast('📥 '+filtered.length+' Einträge exportiert');
+};
+// old export removed
+window._unusedExport=()=>{
+  if(!allEntries.length){showToast('Keine Daten');return;}
+  const t=T[lang];
+  const ws=XLSX.utils.json_to_sheet(allEntries.map(e=>({
+    'Datum':formatDateShort(e.date,lang),'Zeit':e.time,
+    'Temperatur':e.tempMode==='none'?'—':(e.temp+'°C'),
+    'Mahlzeit':e.meal||'—',
+    [t.lblVitD3]:e.vitD3?'✓':'',
+    [t.lblPanda]:e.panda?'✓':'',
+    [t.lblUrin]:e.urin?'✓':'',
+    [t.lblStuhl]:e.stuhl?'✓':'',
+    'Bemerkung':e.note||''
+  })));
+  ws['!cols']=[14,8,12,16,10,10,10,10,30].map(w=>({wch:w}));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Rapport');
+  XLSX.writeFile(wb,`babypass_${localDateStr()}.xlsx`);
+  showToast('📥 Excel exportiert');
+};
+
+// ── MISC ───────────────────────────────────────────────────────────────────
+function setSyncStatus(s){document.getElementById('syncDot').className='sync-dot'+(s==='syncing'?' syncing':s==='error'?' error':'');}
+window.showToast=(msg,isErr=false)=>{const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(isErr?' err':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);};
+
+function resetForm(){
+  initDateTime();
+  tempVal=370; updateTempDisplay(); setTempMode('none');
+  mlVal=200; buildDrum('drumList',mlVal);
+  setMealType('milk');
+  document.getElementById('mealFoodInput').value='';
+  document.getElementById('noteInput').value='';
+  ['vitD3','panda','urin','stuhl'].forEach(id=>{
+    checks[id]=false;
+    const k=id[0].toUpperCase()+id.slice(1);
+    document.getElementById('check'+k).classList.remove('checked');
+    document.getElementById('box'+k).textContent='';
+  });
+}
+function initDateTime(){
+  const n=new Date();
+  document.getElementById('inputDate').value=localDateStr(n);
+  document.getElementById('inputTime').value=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+}
+
+
+
+// ── SETTINGS ───────────────────────────────────────────────────────────────
+const EMOJI_LIST = ['☀️','🌼','💧','🟤','💊','🍼','🌡','❤️','⭐','🌙','🦋','🌈',
+  '🧸','🐣','🌿','🍃','🌺','🌸','🍀','🌻','🎀','🧡','💛','💚','💙','💜',
+  '🔵','🟢','🟡','🟠','🔴','⚪','🩺','💉','🧴','🛁','😴','😊','🤒','🤧'];
+
+let checkpointSettings = {
+  vitD3: {label:'Vitamin D3', icon:'☀️', order:0},
+  panda: {label:'Camilia', icon:'🌼', order:1},
+  urin:  {label:'Urin', icon:'💧', order:2},
+  stuhl: {label:'Stuhl', icon:'🟤', order:3}
+};
+let emojiTarget = null;
+
+async function loadCheckpointSettings(){
+  if(!currentUser) return;
+  try {
+    const _cpBaby = babies.find(b=>b.id===currentBabyId);
+    const _cpOwner = (_cpBaby&&_cpBaby.ownerUid)?_cpBaby.ownerUid:currentUser.uid;
+    const snap = await getDoc(doc(db,`users/${_cpOwner}/settings/checkpoints`));
+    if(snap.exists()) checkpointSettings = snap.data();
+    applyCheckpointSettings();
+  } catch(e){ console.error(e); }
+}
+
+function applyCheckpointSettings(){
+  // Update fixed checkpoints (vitD3, panda, urin, stuhl)
+  const fixed = {vitD3:['VitD3','lblVitD3'], panda:['Panda','lblPanda'], urin:['Urin','lblUrin'], stuhl:['Stuhl','lblStuhl']};
+  Object.entries(fixed).forEach(([k,[id,lblId]])=>{
+    const s = checkpointSettings[k];
+    if(!s) return;
+    const lbl = document.getElementById(lblId);
+    const chk = document.getElementById('check'+id);
+    if(lbl) lbl.textContent = s.label;
+    if(chk){const emoji=chk.querySelector('.check-emoji');if(emoji)emoji.textContent=s.icon;}
+    const echk = document.getElementById('editCheck'+id);
+    if(echk){
+      const eemoji=echk.querySelector('.check-emoji'); const elbl=echk.querySelector('.check-label');
+      if(eemoji)eemoji.textContent=s.icon; if(elbl)elbl.textContent=s.label;
+    }
+  });
+  // Rebuild dynamic checkpoints in form
+  renderDynamicCheckpoints();
+}
+
+function renderDynamicCheckpoints(){
+  const dynamicKeys = Object.keys(checkpointSettings).filter(k=>!['vitD3','panda','urin','stuhl'].includes(k));
+  const formGrid = document.getElementById('checkGrid');
+  const editGrid = document.getElementById('editCheckGrid');
+  // Remove old dynamic items
+  document.querySelectorAll('.dynamic-check').forEach(el=>el.remove());
+  dynamicKeys.sort((a,b)=>(checkpointSettings[a].order||99)-(checkpointSettings[b].order||99)).forEach(k=>{
+    const s = checkpointSettings[k];
+    const safe = k.replace(/[^a-zA-Z0-9]/g,'_');
+    const html = `<div class="check-item dynamic-check" onclick="toggleCheck('${k}')" id="checkDyn_${safe}">
+      <div class="check-box" id="boxDyn_${safe}"></div>
+      <div><div class="check-emoji">${s.icon}</div><div class="check-label">${s.label}</div></div>
+    </div>`;
+    if(formGrid) formGrid.insertAdjacentHTML('beforeend', html);
+    const editHtml = `<div class="check-item dynamic-check" onclick="toggleEditCheck('${k}')" id="editCheckDyn_${safe}">
+      <div class="check-box" id="editBoxDyn_${safe}"></div>
+      <div><div class="check-emoji">${s.icon}</div><div class="check-label">${s.label}</div></div>
+    </div>`;
+    if(editGrid) editGrid.insertAdjacentHTML('beforeend', editHtml);
+  });
+}
+
+function renderCheckpointSettings(){
+  const container = document.getElementById('checkpointSettings');
+  const sorted = Object.entries(checkpointSettings).sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+  container.innerHTML = sorted.map(([k,s])=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px" id="cpRow_${k}">
+      <button onclick="openEmoji('${k}')" style="width:44px;height:44px;font-size:1.4rem;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);cursor:pointer;flex-shrink:0" id="emojiBtn_${k}">${s.icon}</button>
+      <input type="text" value="${s.label}" id="cpLabel_${k}" style="flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:.88rem;background:var(--bg);color:var(--text);outline:none">
+      <button onclick="removeCheckpoint('${k}')" style="width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);color:var(--red);font-size:1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+  `).join('');
+}
+
+window.removeCheckpoint = key => {
+  if(Object.keys(checkpointSettings).length<=1){showToast('Mindestens 1 Checkpunkt erforderlich',true);return;}
+  delete checkpointSettings[key];
+  renderCheckpointSettings();
+};
+
+window.addCheckpoint = () => {
+  const key = 'cp_'+Date.now();
+  const maxOrder = Math.max(...Object.values(checkpointSettings).map(s=>s.order||0));
+  checkpointSettings[key] = {label:'Neu', icon:'⭐', order:maxOrder+1};
+  renderCheckpointSettings();
+  // focus new input
+  setTimeout(()=>{const el=document.getElementById('cpLabel_'+key);if(el){el.focus();el.select();}},50);
+};
+
+window.openSettings = async () => {
+  document.getElementById('settingsNewPw').value='';
+  document.getElementById('settingsNewPw2').value='';
+  renderCheckpointSettings();
+  loadPartners();
+  await populateBabySettingsFields();
+  document.getElementById('settingsModal').classList.add('open');
+};
+window.closeSettings = () => document.getElementById('settingsModal').classList.remove('open');
+window.closeSettingsOutside = ev => { if(ev.target===document.getElementById('settingsModal')) closeSettings(); };
+
+window.changePassword = async () => {
+  const pw1 = document.getElementById('settingsNewPw').value;
+  const pw2 = document.getElementById('settingsNewPw2').value;
+  if(!pw1||!pw2){showToast('Bitte beide Felder ausfüllen',true);return;}
+  if(pw1!==pw2){showToast('Passwörter stimmen nicht überein',true);return;}
+  if(pw1.length<6){showToast('Mindestens 6 Zeichen',true);return;}
+  try {
+    const {updatePassword} = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+    await updatePassword(auth.currentUser, pw1);
+    document.getElementById('settingsNewPw').value='';
+    document.getElementById('settingsNewPw2').value='';
+    showToast('✓ Passwort geändert');
+  } catch(e){
+    if(e.code==='auth/requires-recent-login'){
+      showToast('⚠ Bitte neu einloggen und nochmals versuchen',true);
+    } else {
+      showToast('⚠ Fehler: '+e.message,true);
+    }
+  }
+};
+
+window.saveCheckpoints = async () => {
+  Object.keys(checkpointSettings).forEach(k => {
+    const lbl = document.getElementById('cpLabel_'+k);
+    const btn = document.getElementById('emojiBtn_'+k);
+    if(lbl) checkpointSettings[k].label = lbl.value.trim()||checkpointSettings[k].label;
+    if(btn) checkpointSettings[k].icon = btn.textContent;
+  });
+  try {
+    const _saveBaby = babies.find(b=>b.id===currentBabyId);
+    const _saveOwner = (_saveBaby&&_saveBaby.ownerUid)?_saveBaby.ownerUid:currentUser.uid;
+    await setDoc(doc(db,`users/${_saveOwner}/settings/checkpoints`), checkpointSettings);
+    applyCheckpointSettings();
+    closeSettings();
+    showToast('✓ Checkpunkte gespeichert');
+  } catch(e){ showToast('⚠ Fehler',true); console.error(e); }
+};
+
+// EMOJI PICKER
+window.openEmoji = key => {
+  emojiTarget = key;
+  const grid = document.getElementById('emojiGrid');
+  grid.innerHTML = EMOJI_LIST.map(e=>`
+    <button onclick="pickEmoji('${e}')" style="font-size:1.6rem;padding:8px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);cursor:pointer;line-height:1">${e}</button>
+  `).join('');
+  document.getElementById('emojiModal').classList.add('open');
+};
+window.closeEmoji = () => document.getElementById('emojiModal').classList.remove('open');
+window.closeEmojiOutside = ev => { if(ev.target===document.getElementById('emojiModal')) closeEmoji(); };
+window.pickEmoji = emoji => {
+  if(emojiTarget){
+    const btn = document.getElementById('emojiBtn_'+emojiTarget);
+    if(btn) btn.textContent = emoji;
+    checkpointSettings[emojiTarget].icon = emoji;
+  }
+  closeEmoji();
+};
+
+
+
+// ── DATE FORMATTING ────────────────────────────────────────────────────────
+// Returns YYYY-MM-DD using the device's LOCAL calendar date (not UTC).
+// toISOString() always returns UTC, which is wrong around midnight for
+// any timezone ahead of UTC (e.g. Switzerland) - this fixes that.
+function localDateStr(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function formatDate(dateStr, lang) {
+  try {
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString(lang==='it'?'it-IT':'de-CH', {
+      weekday:'long', day:'numeric', month:'long', year:'numeric'
+    });
+  } catch(e){ return dateStr; }
+}
+function formatDateShort(dateStr, lang) {
+  try {
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString(lang==='it'?'it-IT':'de-CH', {
+      day:'numeric', month:'short'
+    });
+  } catch(e){ return dateStr; }
+}
+
+// ── BABY SETTINGS ──────────────────────────────────────────────────────────
+let babyForecastHours = 3.0;
+let bsSelectedIcon = '👶';
+
+async function loadBabySettings(){
+  if(!currentUser||!currentBabyId) return;
+  try {
+    const baby = babies.find(b=>b.id===currentBabyId);
+    const ownerUid = (baby&&baby.ownerUid)?baby.ownerUid:currentUser.uid;
+    const snap = await getDoc(doc(db,`users/${ownerUid}/babies/${currentBabyId}/settings/general`));
+    if(snap.exists()){
+      babyForecastHours = snap.data().forecastHours||3.0;
+    }
+  } catch(e){ console.error(e); }
+}
+
+async function populateBabySettingsFields(){
+  const baby = babies.find(b=>b.id===currentBabyId);
+  const section = document.getElementById('settingsBabySection');
+  const note = document.getElementById('settingsNoBabyNote');
+  if(!baby){
+    section.style.display='none';
+    note.style.display='block';
+    return;
+  }
+  section.style.display='block';
+  note.style.display='none';
+  await loadBabySettings();
+  document.getElementById('bsName').value = baby.name||'';
+  bsSelectedIcon = baby.icon||'👶';
+  document.querySelectorAll('#bsIcons .baby-icon-btn').forEach(b=>{
+    const sel = b.dataset.icon===bsSelectedIcon;
+    b.style.borderColor = sel?'#2563eb':'#e2e8f0';
+    b.style.background = sel?'#dbeafe':'#f0f4f8';
+  });
+  document.getElementById('bsForecastDisplay').textContent = babyForecastHours.toFixed(1)+' h';
+}
+
+window.selectBsIcon = el => {
+  bsSelectedIcon = el.dataset.icon;
+  document.querySelectorAll('#bsIcons .baby-icon-btn').forEach(b=>{
+    b.style.borderColor = b===el?'#2563eb':'#e2e8f0';
+    b.style.background = b===el?'#dbeafe':'#f0f4f8';
+  });
+};
+
+window.changeForecastHours = delta => {
+  babyForecastHours = Math.min(6, Math.max(1, babyForecastHours + delta));
+  babyForecastHours = Math.round(babyForecastHours * 2) / 2; // round to 0.5
+  document.getElementById('bsForecastDisplay').textContent = babyForecastHours.toFixed(1)+' h';
+};
+
+window.saveBabySettings = async () => {
+  const name = document.getElementById('bsName').value.trim();
+  if(!name){showToast('Bitte einen Namen eingeben',true);return;}
+  const baby = babies.find(b=>b.id===currentBabyId);
+  if(!baby) return;
+  const ownerUid = baby.ownerUid||currentUser.uid;
+  try {
+    // Update baby name + icon
+    await updateDoc(doc(db,`users/${ownerUid}/babies/${currentBabyId}`),{name, icon:bsSelectedIcon});
+    // Save forecast hours
+    await setDoc(doc(db,`users/${ownerUid}/babies/${currentBabyId}/settings/general`),{
+      forecastHours: babyForecastHours
+    }, {merge:true});
+    // Update local state
+    baby.name = name; baby.icon = bsSelectedIcon;
+    document.getElementById('appBabyName').textContent = bsSelectedIcon+' '+name;
+    renderBabyGrid();
+    showToast('✓ Baby-Einstellungen gespeichert');
+  } catch(e){ console.error(e); showToast('⚠ Fehler: '+e.message, true); }
+};
+
+// ── PARTNER ────────────────────────────────────────────────────────────────
+async function loadPartners(){
+  if(!currentUser||!currentBabyId) return;
+  try {
+    const snap = await getDocs(collection(db,`users/${currentUser.uid}/babies/${currentBabyId}/partners`));
+    const partners = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const list = document.getElementById('partnerList');
+    if(!list) return;
+    if(!partners.length){
+      list.innerHTML='<div style="font-size:.8rem;color:var(--text2);padding:8px 0">Noch kein Partner eingeladen.</div>';
+      return;
+    }
+    list.innerHTML = partners.map(p=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:8px">
+        <div>
+          <div style="font-size:.85rem;font-weight:700">${p.email}</div>
+          <div style="font-size:.7rem;color:${p.status==='active'?'var(--green)':'var(--orange)'}">
+            ${p.status==='active'?'✓ Aktiv':'⏳ Ausstehend'}
+          </div>
+        </div>
+        <button onclick="removePartner('${p.id}')" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--red);font-size:12px;cursor:pointer">✕</button>
+      </div>`).join('');
+  } catch(e){ console.error(e); }
+}
+
+window.invitePartner = async () => {
+  const email = document.getElementById('partnerEmail').value.trim().toLowerCase();
+  if(!email){showToast('Bitte E-Mail eingeben',true);return;}
+  if(!currentBabyId){showToast('Bitte zuerst ein Baby auswählen',true);return;}
+  const btn = document.querySelector('#settingsModal .modal-save-btn');
+  try {
+    // Check if already invited
+    const existing = await getDocs(collection(db,`users/${currentUser.uid}/babies/${currentBabyId}/partners`));
+    if(existing.docs.some(d=>d.data().email===email)){showToast('Bereits eingeladen',true);return;}
+
+    const baby = babies.find(b=>b.id===currentBabyId);
+    const babyName = baby ? baby.name : 'Baby';
+
+    // Add partner to owner's baby
+    await addDoc(collection(db,`users/${currentUser.uid}/babies/${currentBabyId}/partners`),{
+      email, status:'pending', invitedAt:new Date().toISOString()
+    });
+
+    // Add shared access entry for partner
+    await setDoc(doc(db,`partnerInvites/${email.replace(/\./g,'_')}_${currentBabyId}`),{
+      ownerUid: currentUser.uid,
+      babyId: currentBabyId,
+      email,
+      status:'pending',
+      invitedAt: new Date().toISOString()
+    });
+
+    // Send invitation email via EmailJS
+    await emailjs.send('service_v8vn6p1', 'template_cplnr0h', {
+      to_email: email,
+      name: currentUser.email,
+      app_url: window.location.origin,
+      baby_name: babyName
+    });
+
+    document.getElementById('partnerEmail').value='';
+    showToast('✓ Einladung gesendet an '+email);
+    loadPartners();
+  } catch(e){ console.error(e); showToast('⚠ Fehler: '+e.message,true); }
+};
+
+window.removePartner = async id => {
+  if(!confirm('Partner entfernen?')) return;
+  try {
+    await deleteDoc(doc(db,`users/${currentUser.uid}/babies/${currentBabyId}/partners`,id));
+    loadPartners();
+    showToast('✓ Partner entfernt');
+  } catch(e){ showToast('⚠ Fehler',true); }
+};
+
+async function checkPartnerAccess(){
+  if(!currentUser) return;
+  const email = currentUser.email.toLowerCase().replace(/\./g,'_');
+  try {
+    // Find all invites for this user's email
+    const snap = await getDocs(collection(db,'partnerInvites'));
+    const myInvites = snap.docs.filter(d=>d.data().email===currentUser.email.toLowerCase());
+    for(const inv of myInvites){
+      const data = inv.data();
+      // Check if baby already in list
+      if(!babies.find(b=>b.id===data.babyId&&b.ownerUid===data.ownerUid)){
+        // Load baby info
+        const babyDoc = await getDoc(doc(db,`users/${data.ownerUid}/babies/${data.babyId}`));
+        if(babyDoc.exists()){
+          const _bd=babyDoc.data();
+          const _ok=confirm('👶 Einladung!\n\n'+data.email+' teilt «'+(_bd.name||'Baby')+'» mit dir.\n\nZugriff akzeptieren?');
+          if(!_ok) continue;
+          babies.push({id:data.babyId,ownerUid:data.ownerUid,isShared:true,..._bd});
+          // Mark invite as active
+          await setDoc(inv.ref,{...data,status:'active'},{merge:true});
+          // Update partner status on owner side
+          const partnerSnap = await getDocs(collection(db,`users/${data.ownerUid}/babies/${data.babyId}/partners`));
+          const myEntry = partnerSnap.docs.find(d=>d.data().email===currentUser.email.toLowerCase());
+          if(myEntry) await setDoc(myEntry.ref,{...myEntry.data(),status:'active'},{merge:true});
+        }
+      }
+    }
+    renderBabyGrid();
+  } catch(e){ console.error(e); }
+}
+
+// ── FOOD SUGGESTIONS ───────────────────────────────────────────────────────
+let foodHistory = [];
+
+function buildFoodHistory(){
+  const foods = allEntries
+    .filter(e=>e.mealType==='food'&&e.meal&&e.meal!=='—')
+    .map(e=>e.meal.trim())
+    .filter((v,i,a)=>a.indexOf(v)===i) // unique
+    .slice(0,20);
+  foodHistory = foods;
+}
+
+window.showFoodSuggestions = () => {
+  buildFoodHistory();
+  renderFoodSuggestions(foodHistory);
+};
+
+window.filterFoodSuggestions = () => {
+  const val = document.getElementById('mealFoodInput').value.toLowerCase();
+  const filtered = val ? foodHistory.filter(f=>f.toLowerCase().includes(val)) : foodHistory;
+  renderFoodSuggestions(filtered);
+};
+
+function renderFoodSuggestions(list){
+  const box = document.getElementById('foodSuggestions');
+  if(!list.length){box.style.display='none';return;}
+  box.style.display='block';
+  box.innerHTML = list.map(f=>`
+    <div onclick="selectFood('${f.replace(/'/g,"\'")}')"
+      style="padding:11px 14px;font-size:.88rem;cursor:pointer;border-bottom:1px solid var(--border);font-family:var(--font)"
+      onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">${f}</div>
+  `).join('');
+}
+
+window.selectFood = food => {
+  document.getElementById('mealFoodInput').value = food;
+  document.getElementById('foodSuggestions').style.display='none';
+};
+
+// Hide suggestions when clicking outside
+document.addEventListener('click', e => {
+  if(!e.target.closest('#mealFoodSection')) {
+    const box = document.getElementById('foodSuggestions');
+    if(box) box.style.display='none';
+  }
+});
+
+// ── MIGRATION ──────────────────────────────────────────────────────────────
+window.openMigration = () => {
+  const info = document.getElementById('migrationBabyInfo');
+  const btn = document.getElementById('migrationBtn');
+  document.getElementById('migrationStatus').style.display='none';
+  document.getElementById('migrationDone').style.display='none';
+  btn.style.display='block'; btn.disabled=false; btn.textContent='Jetzt importieren';
+  if(currentBabyId){
+    const baby = babies.find(b=>b.id===currentBabyId);
+    info.textContent = '👶 Ziel: '+(baby?baby.icon+' '+baby.name:'Kein Baby ausgewählt');
+    info.style.background='var(--accent-light)'; info.style.color='var(--accent-dark)';
+  } else {
+    info.textContent = '⚠ Bitte zuerst ein Baby auf dem Hauptscreen auswählen.';
+    info.style.background='#fff7ed'; info.style.color='var(--orange)';
+    btn.disabled=true;
+  }
+  document.getElementById('migrationModal').classList.add('open');
+};
+window.closeMigration = () => document.getElementById('migrationModal').classList.remove('open');
+window.closeMigrationOutside = ev => { if(ev.target===document.getElementById('migrationModal')) closeMigration(); };
+
+window.runMigration = async () => {
+  if(!currentUser||!currentBabyId){showToast('Kein Baby ausgewählt',true);return;}
+  const btn=document.getElementById('migrationBtn');
+  btn.disabled=true; btn.textContent='Läuft...';
+  document.getElementById('migrationStatus').style.display='block';
+  document.getElementById('migrationStatusText').textContent='Alte Einträge werden geladen...';
+  document.getElementById('migrationBar').style.width='0%';
+  document.getElementById('migrationCount').textContent='';
+
+  try {
+    // Load old entries from root "rapporte" collection
+    const { collection: col2, getDocs: gd2 } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+    const oldSnap = await getDocs(collection(db,'rapporte'));
+    const oldDocs = oldSnap.docs;
+    const total = oldDocs.length;
+
+    if(total===0){
+      document.getElementById('migrationStatusText').textContent='Keine alten Einträge gefunden.';
+      document.getElementById('migrationBar').style.width='100%';
+      btn.textContent='Fertig'; return;
+    }
+
+    document.getElementById('migrationStatusText').textContent='Importiere '+total+' Einträge...';
+    const target = collection(db,`users/${currentUser.uid}/babies/${currentBabyId}/rapporte`);
+    let done=0;
+    for(const d of oldDocs){
+      await addDoc(target, d.data());
+      done++;
+      const pct=Math.round(done/total*100);
+      document.getElementById('migrationBar').style.width=pct+'%';
+      document.getElementById('migrationCount').textContent=done+' / '+total+' Einträge kopiert';
+    }
+
+    document.getElementById('migrationStatus').style.display='none';
+    document.getElementById('migrationDone').style.display='block';
+    document.getElementById('migrationDoneText').textContent=total+' Einträge erfolgreich importiert!';
+    btn.style.display='none';
+    showToast('✓ '+total+' Einträge importiert');
+  } catch(e){
+    console.error(e);
+    document.getElementById('migrationStatusText').textContent='⚠ Fehler: '+e.message;
+    btn.disabled=false; btn.textContent='Nochmals versuchen';
+  }
+};
+
+window.showLegal = showLegal;
+window.closeLegal = closeLegal;
+
+
+
+// ── OFFLINE QUEUE ──────────────────────────────────────────────────────────
+let isOnline = navigator.onLine;
+window.addEventListener('online', ()=>{
+  isOnline=true;
+  setSyncStatus('ok');
+  showToast('✅ Wieder online – Daten werden synchronisiert');
+  flushOfflineQueue();
+});
+window.addEventListener('offline', ()=>{
+  isOnline=false;
+  setSyncStatus('error');
+  showToast('⚠️ Offline – Einträge werden lokal gespeichert', true);
+});
+
+const OFFLINE_KEY='babypass_offline_queue';
+function getOfflineQueue(){ try{return JSON.parse(localStorage.getItem(OFFLINE_KEY)||'[]');}catch(e){return[];} }
+function saveOfflineQueue(q){ localStorage.setItem(OFFLINE_KEY, JSON.stringify(q)); }
+
+function queueOfflineEntry(entry){
+  const q=getOfflineQueue();
+  q.push({...entry, _queuedAt:new Date().toISOString()});
+  saveOfflineQueue(q);
+  showToast('💾 Lokal gespeichert – wird synchronisiert wenn online');
+}
+
+async function flushOfflineQueue(){
+  const q=getOfflineQueue();
+  if(!q.length||!currentUser||!currentBabyId) return;
+  let synced=0;
+  for(const entry of q){
+    try{
+      const {_queuedAt,...data}=entry;
+      await addDoc(rapportCol(), data);
+      synced++;
+    } catch(e){console.error('Queue flush error:',e);}
+  }
+  if(synced>0){
+    saveOfflineQueue([]);
+    showToast('✅ '+synced+' gespeicherte Einträge synchronisiert');
+    haptic('success');
+  }
+}
+
+// ── HAPTIC FEEDBACK ────────────────────────────────────────────────────────
+function haptic(type='light'){
+  try {
+    if(window.navigator.vibrate){
+      if(type==='light') navigator.vibrate(10);
+      else if(type==='success') navigator.vibrate([10,50,10]);
+      else if(type==='error') navigator.vibrate([50,30,50]);
+    }
+  } catch(e){}
+}
+
+// ── SWIPE GESTURES ─────────────────────────────────────────────────────────
+(function(){
+  let sx=0, sy=0;
+  const tabs=['form','history'];
+  document.addEventListener('touchstart', e=>{
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+  }, {passive:true});
+  document.addEventListener('touchend', e=>{
+    if(!document.getElementById('appScreen').classList.contains('active')) return;
+    const dx=e.changedTouches[0].clientX-sx;
+    const dy=Math.abs(e.changedTouches[0].clientY-sy);
+    if(Math.abs(dx)>60&&dy<40){
+      const cur=tabs.findIndex(t=>document.getElementById(t+'Tab').classList.contains('active'));
+      if(dx<0&&cur<tabs.length-1) switchTab(tabs[cur+1]);
+      else if(dx>0&&cur>0) switchTab(tabs[cur-1]);
+    }
+  }, {passive:true});
+})();
+
+// Enter key on auth
+document.getElementById('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth();});
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
