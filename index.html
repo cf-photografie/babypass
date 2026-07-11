@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1e3a8a">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Babypass">
@@ -15,7 +13,6 @@
 <script>emailjs.init("IeHTlhUhlZ5310n1l");</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👶</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563eb'/><text y='.85em' font-size='75' x='12'>👶</text></svg>">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👶</text></svg>">
 <title>Babypass</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -567,7 +564,7 @@ function closeLegalOutside(ev) { if(ev.target===document.getElementById('legalMo
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, onSnapshot, setDoc, getDoc }
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, where, onSnapshot, setDoc, getDoc, arrayUnion, arrayRemove }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, browserLocalPersistence, setPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -772,7 +769,7 @@ window.saveBaby = async () => {
   const name = document.getElementById('newBabyName').value.trim();
   if(!name){showToast('Bitte einen Namen eingeben',true);return;}
   try {
-    const ref = await addDoc(collection(db,`users/${currentUser.uid}/babies`),{name, icon:selectedBabyIcon, createdAt:new Date().toISOString()});
+    const ref = await addDoc(collection(db,`users/${currentUser.uid}/babies`),{name, icon:selectedBabyIcon, partnerUids:[], createdAt:new Date().toISOString()});
     babies.push({id:ref.id, name, icon:selectedBabyIcon});
     renderBabyGrid();
     closeAddBaby();
@@ -1047,6 +1044,15 @@ window.openEdit = id => {
     document.getElementById('editCheck'+K).classList.toggle('checked',editChecks[k]);
     document.getElementById('editBox'+K).textContent=editChecks[k]?'✓':'';
   });
+  // Also load/reset custom checkpoints from this specific entry (was missing - stale values leaked between edits)
+  Object.keys(checkpointSettings).filter(k=>!['vitD3','panda','urin','stuhl'].includes(k)).forEach(k=>{
+    editChecks[k]=!!e[k];
+    const safe=k.replace(/[^a-zA-Z0-9]/g,'_');
+    const el=document.getElementById('editCheckDyn_'+safe);
+    const box=document.getElementById('editBoxDyn_'+safe);
+    if(el) el.classList.toggle('checked',editChecks[k]);
+    if(box) box.textContent=editChecks[k]?'✓':'';
+  });
   document.getElementById('editNote').value=e.note||'';
   document.getElementById('editModal').classList.add('open');
 };
@@ -1220,7 +1226,7 @@ function renderEntry(e,isToday){
   const chips=[tChip,mChip,cpChips].filter(Boolean).join('');
   return `<div class="history-entry${isToday?' today-entry':''}">
     <div class="entry-header">
-      <div><div class="entry-datetime">📅 ${e.date}</div><div class="entry-time">🕐 ${e.time}</div></div>
+      <div><div class="entry-datetime">📅 ${formatDate(e.date,lang)}</div><div class="entry-time">🕐 ${e.time}</div></div>
       <div class="entry-actions">
         <button class="edit-btn" onclick="openEdit('${e.id}')">✏️</button>
         <button class="delete-btn" onclick="deleteEntry('${e.id}')">✕</button>
@@ -1257,9 +1263,29 @@ window.exportXLSX=()=>{
   const from=new Date(); from.setDate(from.getDate()-30);
   document.getElementById('exportFrom').value=localDateStr(from);
   document.getElementById('exportTo').value=today;
+  renderDynamicExportFilters();
   updateExportCount();
   document.getElementById('exportModal').classList.add('open');
 };
+
+// Adds one filter chip per custom checkpoint (was missing - custom checkpoints
+// could not be filtered nor were they exported at all)
+function renderDynamicExportFilters(){
+  const wrap=document.getElementById('exportTypeFilters');
+  if(!wrap) return;
+  wrap.querySelectorAll('.export-filter-btn.dyn').forEach(b=>b.remove());
+  Object.entries(checkpointSettings)
+    .filter(([k])=>!['vitD3','panda','urin','stuhl'].includes(k))
+    .sort((a,b)=>(a[1].order||0)-(b[1].order||0))
+    .forEach(([k,s])=>{
+      const btn=document.createElement('button');
+      btn.className='export-filter-btn dyn';
+      btn.dataset.type=k;
+      btn.textContent=s.icon+' '+s.label;
+      btn.onclick=()=>toggleExportFilter(btn);
+      wrap.appendChild(btn);
+    });
+}
 window.closeExport=()=>document.getElementById('exportModal').classList.remove('open');
 window.closeExportOutside=ev=>{if(ev.target===document.getElementById('exportModal'))closeExport();};
 let activeExportTypes=['all'];
@@ -1311,6 +1337,8 @@ function getFilteredEntries(){
       if(t==='panda')return e.panda;
       if(t==='urin')return e.urin;
       if(t==='temp')return e.tempMode==='measured'&&e.temp;
+      // Custom/dynamic checkpoint (was missing - could not be filtered before)
+      if(checkpointSettings[t]) return !!e[t];
       return false;
     });
   });
@@ -1322,17 +1350,24 @@ window.runExport=()=>{
   const filtered=getFilteredEntries();
   if(!filtered.length){showToast('Keine Daten für diesen Filter',true);return;}
   const t=T[lang];
-  const ws=XLSX.utils.json_to_sheet(filtered.map(e=>({
-    'Datum':formatDateShort(e.date,lang),'Zeit':e.time,
-    'Temperatur':e.tempMode==='none'?'—':(e.temp+'°C'),
-    'Mahlzeit':e.meal||'—',
-    [t.lblVitD3]:e.vitD3?'✓':'',
-    [t.lblPanda]:e.panda?'✓':'',
-    [t.lblUrin]:e.urin?'✓':'',
-    [t.lblStuhl]:e.stuhl?'✓':'',
-    'Bemerkung':e.note||''
-  })));
-  ws['!cols']=[14,8,12,16,10,10,10,10,30].map(w=>({wch:w}));
+  const dynKeys=Object.keys(checkpointSettings).filter(k=>!['vitD3','panda','urin','stuhl'].includes(k))
+    .sort((a,b)=>(checkpointSettings[a].order||0)-(checkpointSettings[b].order||0));
+  const ws=XLSX.utils.json_to_sheet(filtered.map(e=>{
+    const row={
+      'Datum':formatDateShort(e.date,lang),'Zeit':e.time,
+      'Temperatur':e.tempMode==='none'?'—':(e.temp+'°C'),
+      'Mahlzeit':e.meal||'—',
+      [t.lblVitD3]:e.vitD3?'✓':'',
+      [t.lblPanda]:e.panda?'✓':'',
+      [t.lblUrin]:e.urin?'✓':'',
+      [t.lblStuhl]:e.stuhl?'✓':''
+    };
+    // Custom checkpoints as extra columns (was missing before)
+    dynKeys.forEach(k=>{ row[checkpointSettings[k].label]=e[k]?'✓':''; });
+    row['Bemerkung']=e.note||'';
+    return row;
+  }));
+  ws['!cols']=[14,8,12,16,10,10,10,10,...dynKeys.map(()=>10),30].map(w=>({wch:w}));
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Rapport');
   const from=document.getElementById('exportFrom').value;
@@ -1340,26 +1375,6 @@ window.runExport=()=>{
   XLSX.writeFile(wb,'babypass_'+from+'_'+to+'.xlsx');
   closeExport();
   showToast('📥 '+filtered.length+' Einträge exportiert');
-};
-// old export removed
-window._unusedExport=()=>{
-  if(!allEntries.length){showToast('Keine Daten');return;}
-  const t=T[lang];
-  const ws=XLSX.utils.json_to_sheet(allEntries.map(e=>({
-    'Datum':formatDateShort(e.date,lang),'Zeit':e.time,
-    'Temperatur':e.tempMode==='none'?'—':(e.temp+'°C'),
-    'Mahlzeit':e.meal||'—',
-    [t.lblVitD3]:e.vitD3?'✓':'',
-    [t.lblPanda]:e.panda?'✓':'',
-    [t.lblUrin]:e.urin?'✓':'',
-    [t.lblStuhl]:e.stuhl?'✓':'',
-    'Bemerkung':e.note||''
-  })));
-  ws['!cols']=[14,8,12,16,10,10,10,10,30].map(w=>({wch:w}));
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Rapport');
-  XLSX.writeFile(wb,`babypass_${localDateStr()}.xlsx`);
-  showToast('📥 Excel exportiert');
 };
 
 // ── MISC ───────────────────────────────────────────────────────────────────
@@ -1378,6 +1393,15 @@ function resetForm(){
     const k=id[0].toUpperCase()+id.slice(1);
     document.getElementById('check'+k).classList.remove('checked');
     document.getElementById('box'+k).textContent='';
+  });
+  // Also reset custom/dynamic checkpoints (was missing - caused stale checks to persist)
+  Object.keys(checkpointSettings).filter(k=>!['vitD3','panda','urin','stuhl'].includes(k)).forEach(id=>{
+    checks[id]=false;
+    const safe=id.replace(/[^a-zA-Z0-9]/g,'_');
+    const el=document.getElementById('checkDyn_'+safe);
+    const box=document.getElementById('boxDyn_'+safe);
+    if(el) el.classList.remove('checked');
+    if(box) box.textContent='';
   });
 }
 function initDateTime(){
@@ -1653,10 +1677,18 @@ window.saveBabySettings = async () => {
 };
 
 // ── PARTNER ────────────────────────────────────────────────────────────────
+// Resolve the real owner UID of the currently selected baby (works whether
+// the current user is the owner OR a partner viewing a shared baby).
+function currentBabyOwnerUid(){
+  const baby = babies.find(b=>b.id===currentBabyId);
+  return (baby && baby.ownerUid) ? baby.ownerUid : currentUser.uid;
+}
+
 async function loadPartners(){
   if(!currentUser||!currentBabyId) return;
   try {
-    const snap = await getDocs(collection(db,`users/${currentUser.uid}/babies/${currentBabyId}/partners`));
+    const ownerUid = currentBabyOwnerUid();
+    const snap = await getDocs(collection(db,`users/${ownerUid}/babies/${currentBabyId}/partners`));
     const partners = snap.docs.map(d=>({id:d.id,...d.data()}));
     const list = document.getElementById('partnerList');
     if(!list) return;
@@ -1681,23 +1713,23 @@ window.invitePartner = async () => {
   const email = document.getElementById('partnerEmail').value.trim().toLowerCase();
   if(!email){showToast('Bitte E-Mail eingeben',true);return;}
   if(!currentBabyId){showToast('Bitte zuerst ein Baby auswählen',true);return;}
-  const btn = document.querySelector('#settingsModal .modal-save-btn');
+  const ownerUid = currentBabyOwnerUid();
   try {
     // Check if already invited
-    const existing = await getDocs(collection(db,`users/${currentUser.uid}/babies/${currentBabyId}/partners`));
+    const existing = await getDocs(collection(db,`users/${ownerUid}/babies/${currentBabyId}/partners`));
     if(existing.docs.some(d=>d.data().email===email)){showToast('Bereits eingeladen',true);return;}
 
     const baby = babies.find(b=>b.id===currentBabyId);
     const babyName = baby ? baby.name : 'Baby';
 
     // Add partner to owner's baby
-    await addDoc(collection(db,`users/${currentUser.uid}/babies/${currentBabyId}/partners`),{
+    await addDoc(collection(db,`users/${ownerUid}/babies/${currentBabyId}/partners`),{
       email, status:'pending', invitedAt:new Date().toISOString()
     });
 
     // Add shared access entry for partner
     await setDoc(doc(db,`partnerInvites/${email.replace(/\./g,'_')}_${currentBabyId}`),{
-      ownerUid: currentUser.uid,
+      ownerUid,
       babyId: currentBabyId,
       email,
       status:'pending',
@@ -1720,21 +1752,31 @@ window.invitePartner = async () => {
 
 window.removePartner = async id => {
   if(!confirm('Partner entfernen?')) return;
+  const ownerUid = currentBabyOwnerUid();
   try {
-    await deleteDoc(doc(db,`users/${currentUser.uid}/babies/${currentBabyId}/partners`,id));
+    // Read the partner doc first so we can also revoke their UID-based access
+    const pRef = doc(db,`users/${ownerUid}/babies/${currentBabyId}/partners`,id);
+    const pSnap = await getDoc(pRef);
+    const partnerUid = pSnap.exists() ? pSnap.data().uid : null;
+    await deleteDoc(pRef);
+    if(partnerUid){
+      await updateDoc(doc(db,`users/${ownerUid}/babies/${currentBabyId}`),{
+        partnerUids: arrayRemove(partnerUid)
+      });
+    }
     loadPartners();
     showToast('✓ Partner entfernt');
-  } catch(e){ showToast('⚠ Fehler',true); }
+  } catch(e){ console.error(e); showToast('⚠ Fehler',true); }
 };
 
 async function checkPartnerAccess(){
   if(!currentUser) return;
-  const email = currentUser.email.toLowerCase().replace(/\./g,'_');
   try {
-    // Find all invites for this user's email
-    const snap = await getDocs(collection(db,'partnerInvites'));
-    const myInvites = snap.docs.filter(d=>d.data().email===currentUser.email.toLowerCase());
-    for(const inv of myInvites){
+    // Scoped query (only invites matching MY email) - required so this list
+    // request satisfies the per-document Firestore security rule.
+    const q = query(collection(db,'partnerInvites'), where('email','==',currentUser.email.toLowerCase()));
+    const snap = await getDocs(q);
+    for(const inv of snap.docs){
       const data = inv.data();
       // Check if baby already in list
       if(!babies.find(b=>b.id===data.babyId&&b.ownerUid===data.ownerUid)){
@@ -1747,10 +1789,20 @@ async function checkPartnerAccess(){
           babies.push({id:data.babyId,ownerUid:data.ownerUid,isShared:true,..._bd});
           // Mark invite as active
           await setDoc(inv.ref,{...data,status:'active'},{merge:true});
-          // Update partner status on owner side
+          // Grant this partner's UID access on the baby (per-baby) and on the
+          // owner's account (needed for shared settings like checkpoints).
+          // This is what the Firestore rules check to allow partner access.
+          await updateDoc(doc(db,`users/${data.ownerUid}/babies/${data.babyId}`),{
+            partnerUids: arrayUnion(currentUser.uid)
+          });
+          await setDoc(doc(db,`users/${data.ownerUid}`),{
+            partnerUids: arrayUnion(currentUser.uid)
+          },{merge:true});
+          // Update partner status on owner side + store partner's uid so
+          // removePartner() can later revoke access again.
           const partnerSnap = await getDocs(collection(db,`users/${data.ownerUid}/babies/${data.babyId}/partners`));
           const myEntry = partnerSnap.docs.find(d=>d.data().email===currentUser.email.toLowerCase());
-          if(myEntry) await setDoc(myEntry.ref,{...myEntry.data(),status:'active'},{merge:true});
+          if(myEntry) await setDoc(myEntry.ref,{...myEntry.data(),status:'active',uid:currentUser.uid},{merge:true});
         }
       }
     }
@@ -1805,71 +1857,6 @@ document.addEventListener('click', e => {
   }
 });
 
-// ── MIGRATION ──────────────────────────────────────────────────────────────
-window.openMigration = () => {
-  const info = document.getElementById('migrationBabyInfo');
-  const btn = document.getElementById('migrationBtn');
-  document.getElementById('migrationStatus').style.display='none';
-  document.getElementById('migrationDone').style.display='none';
-  btn.style.display='block'; btn.disabled=false; btn.textContent='Jetzt importieren';
-  if(currentBabyId){
-    const baby = babies.find(b=>b.id===currentBabyId);
-    info.textContent = '👶 Ziel: '+(baby?baby.icon+' '+baby.name:'Kein Baby ausgewählt');
-    info.style.background='var(--accent-light)'; info.style.color='var(--accent-dark)';
-  } else {
-    info.textContent = '⚠ Bitte zuerst ein Baby auf dem Hauptscreen auswählen.';
-    info.style.background='#fff7ed'; info.style.color='var(--orange)';
-    btn.disabled=true;
-  }
-  document.getElementById('migrationModal').classList.add('open');
-};
-window.closeMigration = () => document.getElementById('migrationModal').classList.remove('open');
-window.closeMigrationOutside = ev => { if(ev.target===document.getElementById('migrationModal')) closeMigration(); };
-
-window.runMigration = async () => {
-  if(!currentUser||!currentBabyId){showToast('Kein Baby ausgewählt',true);return;}
-  const btn=document.getElementById('migrationBtn');
-  btn.disabled=true; btn.textContent='Läuft...';
-  document.getElementById('migrationStatus').style.display='block';
-  document.getElementById('migrationStatusText').textContent='Alte Einträge werden geladen...';
-  document.getElementById('migrationBar').style.width='0%';
-  document.getElementById('migrationCount').textContent='';
-
-  try {
-    // Load old entries from root "rapporte" collection
-    const { collection: col2, getDocs: gd2 } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-    const oldSnap = await getDocs(collection(db,'rapporte'));
-    const oldDocs = oldSnap.docs;
-    const total = oldDocs.length;
-
-    if(total===0){
-      document.getElementById('migrationStatusText').textContent='Keine alten Einträge gefunden.';
-      document.getElementById('migrationBar').style.width='100%';
-      btn.textContent='Fertig'; return;
-    }
-
-    document.getElementById('migrationStatusText').textContent='Importiere '+total+' Einträge...';
-    const target = collection(db,`users/${currentUser.uid}/babies/${currentBabyId}/rapporte`);
-    let done=0;
-    for(const d of oldDocs){
-      await addDoc(target, d.data());
-      done++;
-      const pct=Math.round(done/total*100);
-      document.getElementById('migrationBar').style.width=pct+'%';
-      document.getElementById('migrationCount').textContent=done+' / '+total+' Einträge kopiert';
-    }
-
-    document.getElementById('migrationStatus').style.display='none';
-    document.getElementById('migrationDone').style.display='block';
-    document.getElementById('migrationDoneText').textContent=total+' Einträge erfolgreich importiert!';
-    btn.style.display='none';
-    showToast('✓ '+total+' Einträge importiert');
-  } catch(e){
-    console.error(e);
-    document.getElementById('migrationStatusText').textContent='⚠ Fehler: '+e.message;
-    btn.disabled=false; btn.textContent='Nochmals versuchen';
-  }
-};
 
 window.showLegal = showLegal;
 window.closeLegal = closeLegal;
