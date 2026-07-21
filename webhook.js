@@ -1,15 +1,15 @@
 // api/webhook.js – Babypass SOMRIG Webhook
-// Vercel Serverless Function
+// Vercel Serverless Function (Node.js runtime)
+
+import crypto from 'node:crypto';
 
 const SECRET_TOKEN = process.env.WEBHOOK_SECRET || 'babypass-somrig-2026';
 
 export default async function handler(req, res) {
-  // Only allow POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Validate secret token
   const token = req.query.token || req.headers['x-webhook-token'];
   if (token !== SECRET_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -19,18 +19,15 @@ export default async function handler(req, res) {
   const babyId = req.query.babyId || 'nnF5Ti5HkFr5ixisjnmn';
 
   try {
-    // Get Firebase Admin token using service account
-    const tokenResponse = await getFirebaseToken();
-    if (!tokenResponse) {
-      return res.status(500).json({ error: 'Could not get Firebase token' });
+    const accessToken = await getFirebaseToken();
+    if (!accessToken) {
+      return res.status(500).json({ error: 'Could not get Firebase token - check FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY env vars' });
     }
 
-    // Create timestamp
     const now = new Date();
     const date = now.toISOString().split('T')[0];
     const time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
-    // Write to Firestore via REST API
     const firestorePath = `users/${userId}/babies/${babyId}/rapporte`;
     const projectId = 'gesundheits-rapport';
     const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${firestorePath}`;
@@ -57,7 +54,7 @@ export default async function handler(req, res) {
     const firestoreRes = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${tokenResponse}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(entry)
@@ -85,7 +82,9 @@ export default async function handler(req, res) {
   }
 }
 
-// Get Firebase access token using service account JWT
+// Get Firebase access token using a service account JWT.
+// Uses Node's built-in crypto module (not Web Crypto) so it works reliably
+// on Vercel's standard Node.js serverless runtime.
 async function getFirebaseToken() {
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
@@ -106,8 +105,7 @@ async function getFirebaseToken() {
   };
 
   try {
-    // Create JWT manually (no external dependencies)
-    const jwt = await createJWT(payload, privateKey);
+    const jwt = createJWT(payload, privateKey);
 
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -116,6 +114,10 @@ async function getFirebaseToken() {
     });
 
     const tokenData = await tokenRes.json();
+    if (!tokenData.access_token) {
+      console.error('Token response error:', tokenData);
+      return null;
+    }
     return tokenData.access_token;
   } catch (e) {
     console.error('Token error:', e);
@@ -123,44 +125,29 @@ async function getFirebaseToken() {
   }
 }
 
-// Create signed JWT using Web Crypto API (built into Vercel/Node)
-async function createJWT(payload, privateKeyPem) {
+function base64url(input) {
+  return Buffer.from(input)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
+
+// Sign a service-account JWT with Node's native crypto (RS256), avoiding
+// browser-only globals (btoa/atob/crypto.subtle) that aren't reliably
+// available in a standard Node.js serverless function.
+function createJWT(payload, privateKeyPem) {
   const header = { alg: 'RS256', typ: 'JWT' };
-  const enc = new TextEncoder();
-
-  const b64 = str => btoa(unescape(encodeURIComponent(str)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-
-  const headerB64  = b64(JSON.stringify(header));
-  const payloadB64 = b64(JSON.stringify(payload));
+  const headerB64  = base64url(JSON.stringify(header));
+  const payloadB64 = base64url(JSON.stringify(payload));
   const signingInput = `${headerB64}.${payloadB64}`;
 
-  // Import private key
-  const keyData = pemToBuffer(privateKeyPem);
-  const key = await crypto.subtle.importKey(
-    'pkcs8', keyData,
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    false, ['sign']
-  );
-
-  // Sign
-  const signature = await crypto.subtle.sign(
-    'RSASSA-PKCS1-v1_5', key, enc.encode(signingInput)
-  );
-
-  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+  const signer = crypto.createSign('RSA-SHA256');
+  signer.update(signingInput);
+  signer.end();
+  const signature = signer.sign(privateKeyPem);
+  const sigB64 = signature.toString('base64')
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 
   return `${signingInput}.${sigB64}`;
-}
-
-function pemToBuffer(pem) {
-  const base64 = pem
-    .replace(/-----BEGIN PRIVATE KEY-----/, '')
-    .replace(/-----END PRIVATE KEY-----/, '')
-    .replace(/\s/g, '');
-  const binary = atob(base64);
-  const buffer = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) buffer[i] = binary.charCodeAt(i);
-  return buffer.buffer;
 }
