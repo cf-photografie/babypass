@@ -1732,6 +1732,7 @@ window.invitePartner = async () => {
       ownerUid,
       babyId: currentBabyId,
       email,
+      babyName,
       status:'pending',
       invitedAt: new Date().toISOString()
     });
@@ -1780,29 +1781,30 @@ async function checkPartnerAccess(){
       const data = inv.data();
       // Check if baby already in list
       if(!babies.find(b=>b.id===data.babyId&&b.ownerUid===data.ownerUid)){
-        // Load baby info
-        const babyDoc = await getDoc(doc(db,`users/${data.ownerUid}/babies/${data.babyId}`));
-        if(babyDoc.exists()){
-          const _bd=babyDoc.data();
-          const _ok=confirm('👶 Einladung!\n\n'+data.email+' teilt «'+(_bd.name||'Baby')+'» mit dir.\n\nZugriff akzeptieren?');
-          if(!_ok) continue;
-          babies.push({id:data.babyId,ownerUid:data.ownerUid,isShared:true,..._bd});
-          // Mark invite as active
-          await setDoc(inv.ref,{...data,status:'active'},{merge:true});
-          // Grant this partner's UID access on the baby (per-baby) and on the
-          // owner's account (needed for shared settings like checkpoints).
-          // This is what the Firestore rules check to allow partner access.
-          await updateDoc(doc(db,`users/${data.ownerUid}/babies/${data.babyId}`),{
-            partnerUids: arrayUnion(currentUser.uid)
+        const babyLabel = data.babyName || 'Baby';
+        const _ok = confirm('👶 Einladung!\n\n'+data.email+' teilt «'+babyLabel+'» mit dir.\n\nZugriff akzeptieren?');
+        if(!_ok) continue;
+        try {
+          // Access is granted server-side (with elevated rights) because the
+          // partner cannot yet write the field that would grant them access
+          // themselves - see api/accept-invite.js for details.
+          const idToken = await currentUser.getIdToken();
+          const resp = await fetch('/api/accept-invite', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ idToken, ownerUid: data.ownerUid, babyId: data.babyId })
           });
-          await setDoc(doc(db,`users/${data.ownerUid}`),{
-            partnerUids: arrayUnion(currentUser.uid)
-          },{merge:true});
-          // Update partner status on owner side + store partner's uid so
-          // removePartner() can later revoke access again.
-          const partnerSnap = await getDocs(collection(db,`users/${data.ownerUid}/babies/${data.babyId}/partners`));
-          const myEntry = partnerSnap.docs.find(d=>d.data().email===currentUser.email.toLowerCase());
-          if(myEntry) await setDoc(myEntry.ref,{...myEntry.data(),status:'active',uid:currentUser.uid},{merge:true});
+          const result = await resp.json();
+          if(!resp.ok || !result.success){
+            console.error('accept-invite failed:', result);
+            showToast('⚠ Einladung konnte nicht angenommen werden', true);
+            continue;
+          }
+          babies.push({ id: result.baby.id, ownerUid: result.baby.ownerUid, isShared:true, name: result.baby.name, icon: result.baby.icon });
+          showToast('✓ Zugriff auf «'+result.baby.name+'» erhalten');
+        } catch(e){
+          console.error('accept-invite error:', e);
+          showToast('⚠ Fehler bei der Einladung', true);
         }
       }
     }
