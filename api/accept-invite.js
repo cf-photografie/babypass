@@ -5,13 +5,13 @@
 // Security Rules: they need to be a listed partner to get access, but they
 // need access to become a listed partner. This endpoint breaks that loop
 // by performing the grant server-side, after verifying the caller's
-// Firebase ID token directly with Google (so nobody can grant themselves
-// access to someone else's baby by simply guessing IDs).
+// Firebase ID token ourselves (via Google's public signing certs) - this
+// avoids relying on the restricted browser API key, which rejects
+// server-to-server requests that have no HTTP referrer header.
 
 import crypto from 'node:crypto';
 
 const PROJECT_ID = 'gesundheits-rapport';
-const API_KEY = 'AIzaSyAHwARmCNsKcQZj276ogN0DEONJN1DoQoQ';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -22,27 +22,29 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1) Verify the caller's Firebase ID token directly with Google.
-    const lookupRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken })
-    });
-    const lookupData = await lookupRes.json();
-    const user = lookupData.users && lookupData.users[0];
-    if (!user) return res.status(401).json({ error: 'Invalid ID token' });
-    const email = (user.email || '').toLowerCase();
-    const uid = user.localId;
+    // 1) Verify the caller's Firebase ID token ourselves (no API key needed).
+    let email, uid;
+    try {
+      const verified = await verifyFirebaseIdToken(idToken);
+      email = verified.email;
+      uid = verified.uid;
+    } catch (e) {
+      console.error('Token verification failed:', e.message);
+      return res.status(401).json({ error: 'Invalid ID token: ' + e.message });
+    }
 
     const adminToken = await getFirebaseToken();
     if (!adminToken) return res.status(500).json({ error: 'Admin auth failed - check FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY' });
 
-    // 2) Confirm a real invite exists matching this email + baby (prevents
-    // granting access to babies the caller was never invited to).
+    // 2) Confirm a real invite exists matching this email + baby.
     const inviteId = `${email.replace(/\./g, '_')}_${babyId}`;
     const inviteUrl = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/partnerInvites/${inviteId}`;
     const inviteRes = await fetch(inviteUrl, { headers: { Authorization: `Bearer ${adminToken}` } });
-    if (!inviteRes.ok) return res.status(404).json({ error: 'No matching invite found for this email/baby' });
+    if (!inviteRes.ok) {
+      const errText = await inviteRes.text();
+      console.error('Invite lookup failed:', inviteRes.status, errText);
+      return res.status(404).json({ error: 'No matching invite found for this email/baby' });
+    }
     const invite = await inviteRes.json();
     const inviteEmail = invite.fields?.email?.stringValue;
     const inviteOwner = invite.fields?.ownerUid?.stringValue;
@@ -87,6 +89,46 @@ export default async function handler(req, res) {
     console.error('accept-invite error:', e);
     return res.status(500).json({ error: e.message });
   }
+}
+
+// ── Verify a Firebase Auth ID token without the Admin SDK and without the
+//    (referrer-restricted) browser API key: check its RS256 signature
+//    against Google's published public certs for Firebase Auth. ──────────
+let _certsCache = null, _certsCacheAt = 0;
+async function getGoogleCerts() {
+  if (_certsCache && Date.now() - _certsCacheAt < 5 * 60 * 1000) return _certsCache;
+  const r = await fetch('https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com');
+  _certsCache = await r.json();
+  _certsCacheAt = Date.now();
+  return _certsCache;
+}
+
+async function verifyFirebaseIdToken(idToken) {
+  const parts = idToken.split('.');
+  if (parts.length !== 3) throw new Error('Malformed token');
+  const [headerB64, payloadB64, sigB64] = parts;
+  const header = JSON.parse(Buffer.from(headerB64, 'base64').toString('utf8'));
+  const payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString('utf8'));
+
+  const certs = await getGoogleCerts();
+  const cert = certs[header.kid];
+  if (!cert) throw new Error('Unknown signing key (kid)');
+
+  const signingInput = `${headerB64}.${payloadB64}`;
+  const signature = Buffer.from(sigB64.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
+
+  const verifier = crypto.createVerify('RSA-SHA256');
+  verifier.update(signingInput);
+  verifier.end();
+  if (!verifier.verify(cert, signature)) throw new Error('Bad signature');
+
+  const now = Math.floor(Date.now() / 1000);
+  if (payload.exp < now) throw new Error('Token expired');
+  if (payload.aud !== PROJECT_ID) throw new Error('Wrong audience');
+  if (payload.iss !== `https://securetoken.google.com/${PROJECT_ID}`) throw new Error('Wrong issuer');
+  if (!payload.email) throw new Error('Token has no email');
+
+  return { uid: payload.user_id || payload.sub, email: payload.email.toLowerCase() };
 }
 
 async function arrayUnionField(token, path, field, value) {
@@ -139,6 +181,7 @@ async function getFirebaseToken() {
     body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`
   });
   const tokenData = await tokenRes.json();
+  if (!tokenData.access_token) console.error('Admin token error:', tokenData);
   return tokenData.access_token || null;
 }
 
